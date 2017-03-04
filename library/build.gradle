@@ -5,7 +5,13 @@ android {
     buildToolsVersion '25.0.2'
 
     defaultConfig {
-        minSdkVersion 23
+        minSdkVersion 15
         targetSdkVersion 25
     }
+}
+
+dependencies {
+    compile 'com.android.support:recyclerview-v7:25.2.0'
+    compile 'com.github.CymChad:BaseRecyclerViewAdapterHelper:2.8.3'
+    compile 'com.oushangfeng:PinnedSectionItemDecoration:1.2.4'
 }
