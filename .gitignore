@@ -2,7 +2,8 @@
 .DS_Store
 /.gradle/
 /.idea/
-/app/build/
 /build/
 /ebnbin/
+/library/build/
+/sample/
 /local.properties
