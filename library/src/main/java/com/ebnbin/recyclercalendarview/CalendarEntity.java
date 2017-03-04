@@ -16,6 +16,10 @@ final class CalendarEntity implements MultiItemEntity {
      * 日期类型.
      */
     public static final int TYPE_DATE = 1;
+    /**
+     * 占位符类型.
+     */
+    public static final int TYPE_PLACEHOLDER = 2;
 
     /**
      * 非日期类型的日.
@@ -26,14 +30,20 @@ final class CalendarEntity implements MultiItemEntity {
      */
     public static final int DAY_DISABLED = 0;
 
+    /**
+     * 占位符类型的日期.
+     */
+    private static final int DATE_PLACEHOLDER = -2;
+
     public final int year;
     public final int month;
     public final int day;
 
     /**
-     * 如果为 true 则为日期, 否则为年月.
+     * 类型.
      */
-    public final boolean isDate;
+    public final int itemType;
+
     /**
      * 日是否有效.
      */
@@ -67,16 +77,34 @@ final class CalendarEntity implements MultiItemEntity {
         this.month = month;
         this.day = day;
 
-        isDate = this.day != DAY_NOT_DATE;
-        dayEnabled = isDate && this.day != DAY_DISABLED;
+        itemType = this.day == DAY_NOT_DATE ? TYPE_YEAR_MONTH : TYPE_DATE;
+
+        dayEnabled = itemType == TYPE_DATE && this.day != DAY_DISABLED;
 
         yearMonthString = String.format(Locale.getDefault(), "%d年%d月", this.year, this.month);
         dayString = this.dayEnabled ? String.valueOf(this.day) : "";
         dateString = String.format(Locale.getDefault(), "%s%d日", this.yearMonthString, this.day);
     }
 
+    /**
+     * 创建一个占位符类型的日历实体.
+     */
+    public CalendarEntity() {
+        year = DATE_PLACEHOLDER;
+        month = DATE_PLACEHOLDER;
+        day = DATE_PLACEHOLDER;
+
+        itemType = TYPE_PLACEHOLDER;
+
+        dayEnabled = false;
+
+        yearMonthString = "";
+        dayString = "";
+        dateString = "";
+    }
+
     @Override
     public int getItemType() {
-        return isDate ? TYPE_DATE : TYPE_YEAR_MONTH;
+        return itemType;
     }
 }

@@ -56,7 +56,7 @@ public class RecyclerCalendarView extends FrameLayout {
     }
 
     private void init() {
-        inflate(getContext(), R.layout.recycler_calendar_view, this);
+        inflate(getContext(), R.layout.view_recycler_calendar, this);
 
         mCalendarRecyclerView = (RecyclerView) findViewById(R.id.calendar);
 
@@ -95,8 +95,9 @@ public class RecyclerCalendarView extends FrameLayout {
         public CalendarAdapter() {
             super(null);
 
-            addItemType(CalendarEntity.TYPE_YEAR_MONTH, R.layout.year_month_item);
-            addItemType(CalendarEntity.TYPE_DATE, R.layout.date_item);
+            addItemType(CalendarEntity.TYPE_YEAR_MONTH, R.layout.item_year_month);
+            addItemType(CalendarEntity.TYPE_DATE, R.layout.item_date);
+            addItemType(CalendarEntity.TYPE_PLACEHOLDER, R.layout.item_placeholder);
         }
 
         @Override
@@ -129,6 +130,7 @@ public class RecyclerCalendarView extends FrameLayout {
             super.onAttachedToRecyclerView(recyclerView);
 
             FullSpanUtil.onAttachedToRecyclerView(recyclerView, this, CalendarEntity.TYPE_YEAR_MONTH);
+            FullSpanUtil.onAttachedToRecyclerView(recyclerView, this, CalendarEntity.TYPE_PLACEHOLDER);
         }
     }
 }

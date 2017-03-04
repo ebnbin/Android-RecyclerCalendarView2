@@ -78,6 +78,9 @@ final class Util {
             }
         }
 
+        CalendarEntity placeHolderCalendarEntity = new CalendarEntity();
+        calendarData.add(placeHolderCalendarEntity);
+
         return calendarData;
     }
 
