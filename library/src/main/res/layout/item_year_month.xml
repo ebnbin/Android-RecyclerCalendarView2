@@ -2,17 +2,15 @@
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="48dp"
+    android:layout_height="@dimen/year_month_height"
     android:orientation="vertical">
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:background="#ccc"/>
+    <include
+        layout="@layout/view_divider"/>
     <TextView
         android:id="@+id/year_month"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
         android:gravity="center"
-        android:background="#eee"/>
+        android:background="@color/year_month_background"/>
 </LinearLayout>

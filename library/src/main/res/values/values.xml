@@ -1,5 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <color name="background">#fff</color>
+    <color name="weeks_background">#eee</color>
+    <color name="divider">#ddd</color>
+    <color name="year_month_background">#fff</color>
+
+    <dimen name="weeks_height">40dp</dimen>
+    <dimen name="date_height">48dp</dimen>
+    <dimen name="year_month_height">32dp</dimen>
+    <dimen name="divider_height">0.5dp</dimen>
+    <dimen name="placeholder_height">64dp</dimen>
+    <dimen name="calendar_margin_top">39.5dp</dimen>
+
     <string name="sunday">日</string>
     <string name="monday">一</string>
     <string name="tuesday">二</string>

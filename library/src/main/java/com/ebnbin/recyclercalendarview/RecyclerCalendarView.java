@@ -140,8 +140,8 @@ public class RecyclerCalendarView extends FrameLayout {
 
         @Override
         public void configurePinnedHeader(View pinnedHeaderView, int position) {
-            if (getItemViewType(position) == CalendarEntity.TYPE_YEAR_MONTH
-                    || getItem(position).isLastSundayOfYearMonth) {
+            int itemType = getItemViewType(position);
+            if (itemType == CalendarEntity.TYPE_YEAR_MONTH || itemType == CalendarEntity.TYPE_DATE) {
                 TextView yearMonthTextView = (TextView) pinnedHeaderView.findViewById(R.id.year_month);
                 yearMonthTextView.setText(getItem(position).yearMonthString);
             }
