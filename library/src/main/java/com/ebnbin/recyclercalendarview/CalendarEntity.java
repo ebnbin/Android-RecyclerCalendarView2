@@ -62,10 +62,24 @@ final class CalendarEntity implements MultiItemEntity {
      * 日字符串.
      */
     public final String dayString;
+
     /**
-     * 日期字符串.
+     * 未选中的.
      */
-    public final String dateString;
+    public static final int SELECTED_UNSELECTED = 0;
+    /**
+     * 已选中的.
+     */
+    public static final int SELECTED_SELECTED = 1;
+    /**
+     * 选中范围的.
+     */
+    public static final int SELECTED_RANGED = 2;
+
+    /**
+     * 选中类型.
+     */
+    public int selected;
 
     /**
      * 创建一个年月类型的日历实体.
@@ -89,8 +103,16 @@ final class CalendarEntity implements MultiItemEntity {
         this.isLastSundayOfYearMonth = isLastSundayOfYearMonth;
 
         yearMonthString = String.format(Locale.getDefault(), "%d年%d月", this.year, this.month);
-        dayString = this.dayEnabled ? String.valueOf(this.day) : "";
-        dateString = String.format(Locale.getDefault(), "%s%d日", this.yearMonthString, this.day);
+        int[] date = Util.getDate();
+        if (this.dayEnabled) {
+            if (this.year == date[0] && this.month == date[1] && this.day == date[2]) {
+                dayString = "今天";
+            } else {
+                dayString = String.valueOf(this.day);
+            }
+        } else {
+            dayString = "";
+        }
     }
 
     /**
@@ -109,7 +131,6 @@ final class CalendarEntity implements MultiItemEntity {
 
         yearMonthString = "";
         dayString = "";
-        dateString = "";
     }
 
     @Override

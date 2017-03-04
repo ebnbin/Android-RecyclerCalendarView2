@@ -4,6 +4,11 @@
     <color name="weeks_background">#eee</color>
     <color name="divider">#ddd</color>
     <color name="year_month_background">#fff</color>
+    <color name="unselected_background">#fff</color>
+    <color name="selected_background">#f00</color>
+    <color name="ranged_background">#f88</color>
+    <color name="unselected_text">#000</color>
+    <color name="selected_text">#fff</color>
 
     <dimen name="weeks_height">40dp</dimen>
     <dimen name="date_height">48dp</dimen>

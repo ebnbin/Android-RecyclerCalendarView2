@@ -38,7 +38,7 @@ final class Util {
     /**
      * 返回一个长度为 3 的数组分别表示今天的年月日.
      */
-    private static int[] getDate() {
+    public static int[] getDate() {
         int[] date = new int[3];
 
         Calendar calendar = Calendar.getInstance();
@@ -89,6 +89,20 @@ final class Util {
         calendarData.add(placeHolderCalendarEntity);
 
         return calendarData;
+    }
+
+    /**
+     * 返回指定年月日的 position.
+     */
+    public static int getPosition(List<CalendarEntity> calendarData, int year, int month, int day) {
+        for (int position = 0; position < calendarData.size(); position++) {
+            CalendarEntity calendarEntity = calendarData.get(position);
+            if (calendarEntity.year == year && calendarEntity.month == month && calendarEntity.day == day) {
+                return position;
+            }
+        }
+
+        return -1;
     }
 
     /**

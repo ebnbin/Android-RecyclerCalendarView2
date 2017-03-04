@@ -9,7 +9,10 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_marginTop="@dimen/calendar_margin_top"
-        android:scrollbars="vertical"/>
+        android:paddingBottom="@dimen/placeholder_height"
+        android:clipToPadding="false"
+        android:scrollbars="vertical"
+        android:scrollbarStyle="outsideOverlay"/>
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="@dimen/weeks_height"
