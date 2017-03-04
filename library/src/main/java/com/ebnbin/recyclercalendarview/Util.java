@@ -1,5 +1,8 @@
 package com.ebnbin.recyclercalendarview;
 
+import android.support.v7.widget.GridLayoutManager;
+import android.support.v7.widget.RecyclerView;
+
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
@@ -64,13 +67,17 @@ final class Util {
 
                 for (int disabledDay = 0; disabledDay < weekOfFirstDayOfYearMonth; disabledDay++) {
                     CalendarEntity disabledDayCalendarEntity = new CalendarEntity(year, month,
-                            CalendarEntity.DAY_DISABLED);
+                            CalendarEntity.DAY_DISABLED, false);
                     calendarData.add(disabledDayCalendarEntity);
                 }
 
                 int daysOfYearMonth = getDaysOfYearMonth(year, month);
+                int lastSundayOfYearMonth = (daysOfYearMonth + weekOfFirstDayOfYearMonth - 1) / 7 * 7 -
+                        weekOfFirstDayOfYearMonth + 1;
                 for (int day = 1; day <= daysOfYearMonth; day++) {
-                    CalendarEntity dateCalendarEntity = new CalendarEntity(year, month, day);
+                    boolean isLastSundayOfYearMonth = day == lastSundayOfYearMonth;
+                    CalendarEntity dateCalendarEntity = new CalendarEntity(year, month, day,
+                            isLastSundayOfYearMonth);
                     calendarData.add(dateCalendarEntity);
                 }
 
@@ -148,5 +155,30 @@ final class Util {
      */
     private static boolean isLeapYear(int year) {
         return year % 4 == 0;
+    }
+
+    /**
+     * Copy from https://github.com/oubowu/PinnedSectionItemDecoration.
+     */
+    public static void fullSpan(RecyclerView recyclerView, final RecyclerView.Adapter adapter,
+            final int pinnedHeaderType) {
+        // 如果是网格布局，这里处理标签的布局占满一行
+        final RecyclerView.LayoutManager layoutManager = recyclerView.getLayoutManager();
+        if (layoutManager instanceof GridLayoutManager) {
+            final GridLayoutManager gridLayoutManager = (GridLayoutManager) layoutManager;
+            final GridLayoutManager.SpanSizeLookup oldSizeLookup = gridLayoutManager.getSpanSizeLookup();
+            gridLayoutManager.setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup() {
+                @Override
+                public int getSpanSize(int position) {
+                    if (adapter.getItemViewType(position) == pinnedHeaderType) {
+                        return gridLayoutManager.getSpanCount();
+                    }
+                    if (oldSizeLookup != null) {
+                        return oldSizeLookup.getSpanSize(position);
+                    }
+                    return 1;
+                }
+            });
+        }
     }
 }

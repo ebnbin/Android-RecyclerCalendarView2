@@ -50,6 +50,11 @@ final class CalendarEntity implements MultiItemEntity {
     public final boolean dayEnabled;
 
     /**
+     * 是否为当前年月的最后一个星期日.
+     */
+    public final boolean isLastSundayOfYearMonth;
+
+    /**
      * 年月字符串.
      */
     public final String yearMonthString;
@@ -66,13 +71,13 @@ final class CalendarEntity implements MultiItemEntity {
      * 创建一个年月类型的日历实体.
      */
     public CalendarEntity(int year, int month) {
-        this(year, month, DAY_NOT_DATE);
+        this(year, month, DAY_NOT_DATE, false);
     }
 
     /**
      * 创建一个日期类型的日历实体.
      */
-    public CalendarEntity(int year, int month, int day) {
+    public CalendarEntity(int year, int month, int day, boolean isLastSundayOfYearMonth) {
         this.year = year;
         this.month = month;
         this.day = day;
@@ -80,6 +85,8 @@ final class CalendarEntity implements MultiItemEntity {
         itemType = this.day == DAY_NOT_DATE ? TYPE_YEAR_MONTH : TYPE_DATE;
 
         dayEnabled = itemType == TYPE_DATE && this.day != DAY_DISABLED;
+
+        this.isLastSundayOfYearMonth = isLastSundayOfYearMonth;
 
         yearMonthString = String.format(Locale.getDefault(), "%d年%d月", this.year, this.month);
         dayString = this.dayEnabled ? String.valueOf(this.day) : "";
@@ -97,6 +104,8 @@ final class CalendarEntity implements MultiItemEntity {
         itemType = TYPE_PLACEHOLDER;
 
         dayEnabled = false;
+
+        isLastSundayOfYearMonth = false;
 
         yearMonthString = "";
         dayString = "";

@@ -12,12 +12,11 @@ import android.support.v7.widget.RecyclerView;
 import android.util.AttributeSet;
 import android.view.View;
 import android.widget.FrameLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.chad.library.adapter.base.BaseMultiItemQuickAdapter;
 import com.chad.library.adapter.base.BaseViewHolder;
-import com.oushangfeng.pinnedsectionitemdecoration.PinnedHeaderItemDecoration;
-import com.oushangfeng.pinnedsectionitemdecoration.utils.FullSpanUtil;
 
 import java.util.List;
 
@@ -25,7 +24,7 @@ import java.util.List;
  * 列表日历 view.
  */
 public class RecyclerCalendarView extends FrameLayout {
-    private RecyclerView mCalendarRecyclerView;
+    private PinnedHeaderRecyclerView mCalendarPinnedHeaderRecyclerView;
 
     private CalendarAdapter mCalendarAdapter;
 
@@ -58,17 +57,15 @@ public class RecyclerCalendarView extends FrameLayout {
     private void init() {
         inflate(getContext(), R.layout.view_recycler_calendar, this);
 
-        mCalendarRecyclerView = (RecyclerView) findViewById(R.id.calendar);
+        mCalendarPinnedHeaderRecyclerView = (PinnedHeaderRecyclerView) findViewById(R.id.calendar);
 
         RecyclerView.LayoutManager layout = new GridLayoutManager(getContext(), 7);
-        mCalendarRecyclerView.setLayoutManager(layout);
-
-        RecyclerView.ItemDecoration decor = new PinnedHeaderItemDecoration.Builder(CalendarEntity.TYPE_YEAR_MONTH)
-                .enableDivider(true).setDividerId(R.drawable.divider).create();
-        mCalendarRecyclerView.addItemDecoration(decor);
+        mCalendarPinnedHeaderRecyclerView.setLayoutManager(layout);
 
         mCalendarAdapter = new CalendarAdapter();
-        mCalendarRecyclerView.setAdapter(mCalendarAdapter);
+        mCalendarPinnedHeaderRecyclerView.setAdapter(mCalendarAdapter);
+
+        mCalendarPinnedHeaderRecyclerView.setPinnedHeaderView(R.layout.item_year_month);
 
         setYearMonthRange(Util.YEAR_FROM, Util.MONTH_FROM, Util.YEAR_TO, Util.MONTH_TO);
     }
@@ -91,7 +88,8 @@ public class RecyclerCalendarView extends FrameLayout {
     /**
      * 日历 adapter.
      */
-    private final class CalendarAdapter extends BaseMultiItemQuickAdapter<CalendarEntity, BaseViewHolder> {
+    private final class CalendarAdapter extends BaseMultiItemQuickAdapter<CalendarEntity, BaseViewHolder>
+            implements PinnedHeaderRecyclerView.PinnedHeaderAdapter {
         public CalendarAdapter() {
             super(null);
 
@@ -129,8 +127,24 @@ public class RecyclerCalendarView extends FrameLayout {
         public void onAttachedToRecyclerView(RecyclerView recyclerView) {
             super.onAttachedToRecyclerView(recyclerView);
 
-            FullSpanUtil.onAttachedToRecyclerView(recyclerView, this, CalendarEntity.TYPE_YEAR_MONTH);
-            FullSpanUtil.onAttachedToRecyclerView(recyclerView, this, CalendarEntity.TYPE_PLACEHOLDER);
+            Util.fullSpan(recyclerView, this, CalendarEntity.TYPE_YEAR_MONTH);
+            Util.fullSpan(recyclerView, this, CalendarEntity.TYPE_PLACEHOLDER);
+        }
+
+        @Override
+        public int getPinnedHeaderState(int position) {
+            return getItem(position).isLastSundayOfYearMonth
+                    ? PinnedHeaderRecyclerView.PinnedHeaderAdapter.STATE_PUSHABLE
+                    : PinnedHeaderRecyclerView.PinnedHeaderAdapter.STATE_VISIBLE;
+        }
+
+        @Override
+        public void configurePinnedHeader(View pinnedHeaderView, int position) {
+            if (getItemViewType(position) == CalendarEntity.TYPE_YEAR_MONTH
+                    || getItem(position).isLastSundayOfYearMonth) {
+                TextView yearMonthTextView = (TextView) pinnedHeaderView.findViewById(R.id.year_month);
+                yearMonthTextView.setText(getItem(position).yearMonthString);
+            }
         }
     }
 }
