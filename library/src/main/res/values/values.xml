@@ -9,6 +9,9 @@
     <color name="ranged_background">#f88</color>
     <color name="unselected_text">#000</color>
     <color name="selected_text">#fff</color>
+    <color name="unselected_today_text">#f00</color>
+    <color name="unselected_festival_text">#f00</color>
+    <color name="unselected_weekend_text">#f00</color>
 
     <dimen name="weeks_height">40dp</dimen>
     <dimen name="date_height">48dp</dimen>

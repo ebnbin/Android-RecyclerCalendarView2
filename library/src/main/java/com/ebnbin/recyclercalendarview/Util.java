@@ -1,11 +1,21 @@
 package com.ebnbin.recyclercalendarview;
 
+import android.content.Context;
+import android.support.v4.util.ArrayMap;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 工具类.
@@ -57,10 +67,14 @@ final class Util {
     /**
      * 返回日历数据.
      */
-    public static List<CalendarEntity> getCalendarData(int yearFrom, int monthFrom, int yearTo, int monthTo) {
+    public static List<CalendarEntity> getCalendarData(Context context, int yearFrom, int monthFrom, int yearTo,
+            int monthTo) {
         List<CalendarEntity> calendarData = new ArrayList<>();
 
-        int weekOfFirstDayOfYearMonth = getWeekOfFirstDayOfYearMonth(yearFrom, monthFrom);
+        Map<Integer, Map<Integer, Map<Integer, String>>> festivals = getFestivals(context);
+
+        int week = getWeekOfFirstDayOfYearMonth(yearFrom, monthFrom);
+        int weekOfFirstDayOfYearMonth = week;
         for (int year = yearFrom; year <= yearTo; year++) {
             for (int month = 1; month <= 12; month++) {
                 if (year == yearFrom && month < monthFrom || year == yearTo && month > monthTo) {
@@ -72,7 +86,7 @@ final class Util {
 
                 for (int disabledDay = 0; disabledDay < weekOfFirstDayOfYearMonth; disabledDay++) {
                     CalendarEntity disabledDayCalendarEntity = new CalendarEntity(year, month,
-                            CalendarEntity.DAY_DISABLED, false);
+                            CalendarEntity.DAY_DISABLED, CalendarEntity.DAY_DISABLED, null, false);
                     calendarData.add(disabledDayCalendarEntity);
                 }
 
@@ -81,9 +95,19 @@ final class Util {
                         weekOfFirstDayOfYearMonth + 1;
                 for (int day = 1; day <= daysOfYearMonth; day++) {
                     boolean isLastSundayOfYearMonth = day == lastSundayOfYearMonth;
-                    CalendarEntity dateCalendarEntity = new CalendarEntity(year, month, day,
+
+                    String festival = "";
+                    if (festivals.containsKey(year)
+                            && festivals.get(year).containsKey(month)
+                            && festivals.get(year).get(month).containsKey(day)) {
+                        festival = festivals.get(year).get(month).get(day);
+                    }
+
+                    CalendarEntity dateCalendarEntity = new CalendarEntity(year, month, day, week, festival,
                             isLastSundayOfYearMonth);
                     calendarData.add(dateCalendarEntity);
+
+                    week = (week + 1) % 7;
                 }
 
                 weekOfFirstDayOfYearMonth = (weekOfFirstDayOfYearMonth + daysOfYearMonth) % 7;
@@ -94,6 +118,14 @@ final class Util {
         calendarData.add(placeHolderCalendarEntity);
 
         return calendarData;
+    }
+
+    /**
+     * 返回某日期是否为今天.
+     */
+    public static boolean isToday(int year, int month, int day) {
+        int[] date = getDate();
+        return year == date[0] && month == date[1] && day == date[2];
     }
 
     /**
@@ -199,5 +231,68 @@ final class Util {
                 }
             });
         }
+    }
+
+    /**
+     * 返回节日.
+     */
+    private static Map<Integer, Map<Integer, Map<Integer, String>>> getFestivals(Context context) {
+        Map<Integer, Map<Integer, Map<Integer, String>>> festivals = new ArrayMap<>();
+
+        try {
+            JSONObject rootJsonObject = new JSONObject(getFestivalJsonString(context));
+            JSONObject festivalJsonObject = rootJsonObject.getJSONObject("festival");
+            Iterator<String> yearKeys = festivalJsonObject.keys();
+            while (yearKeys.hasNext()) {
+                String yearKey = yearKeys.next();
+                JSONObject yearJsonObject = festivalJsonObject.getJSONObject(yearKey);
+                Iterator<String> monthKeys = yearJsonObject.keys();
+                
+                Map<Integer, Map<Integer, String>> monthMap = new ArrayMap<>();
+                while (monthKeys.hasNext()) {
+                    String monthKey = monthKeys.next();
+                    JSONObject monthJsonObject = yearJsonObject.getJSONObject(monthKey);
+                    Iterator<String> dayKeys = monthJsonObject.keys();
+                    
+                    Map<Integer, String> dayMap = new ArrayMap<>();
+                    while (dayKeys.hasNext()) {
+                        String dayKey = dayKeys.next();
+                        String festival = monthJsonObject.getString(dayKey);
+                        
+                        int day = Integer.parseInt(dayKey);
+                        dayMap.put(day, festival);
+                    }
+                    
+                    int month = Integer.parseInt(monthKey);
+                    monthMap.put(month, dayMap);
+                }
+                
+                int year = Integer.parseInt(yearKey);
+                festivals.put(year, monthMap);
+            }
+        } catch (NumberFormatException | JSONException e) {
+            e.printStackTrace();
+        }
+
+        return festivals;
+    }
+
+    /**
+     * 读取 festival.json 文件为字符串.
+     */
+    private static String getFestivalJsonString(Context context) {
+        InputStream is = context.getResources().openRawResource(R.raw.festival);
+        BufferedReader br;
+        StringBuilder stringBuilder = new StringBuilder();
+        try {
+            br = new BufferedReader(new InputStreamReader(is));
+            String string;
+            while ((string = br.readLine()) != null) {
+                stringBuilder.append(string);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return stringBuilder.toString();
     }
 }

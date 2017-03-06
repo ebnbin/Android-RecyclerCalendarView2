@@ -1,5 +1,7 @@
 package com.ebnbin.recyclercalendarview;
 
+import android.text.TextUtils;
+
 import com.chad.library.adapter.base.entity.MultiItemEntity;
 
 import java.util.Locale;
@@ -38,6 +40,26 @@ final class CalendarEntity implements MultiItemEntity {
     public final int year;
     public final int month;
     public final int day;
+
+    public final int week;
+
+    /**
+     * 节日.
+     */
+    public final String festival;
+
+    /**
+     * 是否为今天.
+     */
+    public final boolean isToday;
+    /**
+     * 是否为周末.
+     */
+    public final boolean isWeekend;
+    /**
+     * 是否为节日.
+     */
+    public final boolean isFestival;
 
     /**
      * 类型.
@@ -85,16 +107,24 @@ final class CalendarEntity implements MultiItemEntity {
      * 创建一个年月类型的日历实体.
      */
     public CalendarEntity(int year, int month) {
-        this(year, month, DAY_NOT_DATE, false);
+        this(year, month, DAY_NOT_DATE, DAY_NOT_DATE, null, false);
     }
 
     /**
      * 创建一个日期类型的日历实体.
      */
-    public CalendarEntity(int year, int month, int day, boolean isLastSundayOfYearMonth) {
+    public CalendarEntity(int year, int month, int day, int week, String festival, boolean isLastSundayOfYearMonth) {
         this.year = year;
         this.month = month;
         this.day = day;
+
+        this.week = week;
+
+        this.festival = festival;
+
+        isToday = Util.isToday(this.year, this.month, this.day);
+        isWeekend = this.week == 0 || this.week == 6;
+        isFestival = !TextUtils.isEmpty(this.festival);
 
         itemType = this.day == DAY_NOT_DATE ? TYPE_YEAR_MONTH : TYPE_DATE;
 
@@ -103,10 +133,11 @@ final class CalendarEntity implements MultiItemEntity {
         this.isLastSundayOfYearMonth = isLastSundayOfYearMonth;
 
         yearMonthString = String.format(Locale.getDefault(), "%d年%d月", this.year, this.month);
-        int[] date = Util.getDate();
         if (this.dayEnabled) {
-            if (this.year == date[0] && this.month == date[1] && this.day == date[2]) {
+            if (isToday) {
                 dayString = "今天";
+            } else if (isFestival) {
+                dayString = this.festival;
             } else {
                 dayString = String.valueOf(this.day);
             }
@@ -122,6 +153,13 @@ final class CalendarEntity implements MultiItemEntity {
         year = DATE_PLACEHOLDER;
         month = DATE_PLACEHOLDER;
         day = DATE_PLACEHOLDER;
+
+        isToday = false;
+        week = DATE_PLACEHOLDER;
+        festival = null;
+
+        isWeekend = false;
+        isFestival = false;
 
         itemType = TYPE_PLACEHOLDER;
 

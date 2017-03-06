@@ -134,7 +134,7 @@ public class RecyclerCalendarView extends FrameLayout {
             return;
         }
 
-        mCalendarData = Util.getCalendarData(yearFrom, monthFrom, yearTo, monthTo);
+        mCalendarData = Util.getCalendarData(getContext(), yearFrom, monthFrom, yearTo, monthTo);
         mCalendarAdapter.setNewData(mCalendarData);
     }
 
@@ -352,7 +352,17 @@ public class RecyclerCalendarView extends FrameLayout {
                         case CalendarEntity.SELECTED_UNSELECTED: {
                             helper.setBackgroundColor(R.id.root,
                                     getResources().getColor(R.color.unselected_background));
-                            helper.setTextColor(R.id.day, getResources().getColor(R.color.unselected_text));
+                            if (item.isToday) {
+                                helper.setTextColor(R.id.day, getResources().getColor(R.color.unselected_today_text));
+                            } else if (item.isFestival) {
+                                helper.setTextColor(R.id.day,
+                                        getResources().getColor(R.color.unselected_festival_text));
+                            } else if (item.isWeekend) {
+                                helper.setTextColor(R.id.day,
+                                        getResources().getColor(R.color.unselected_weekend_text));
+                            } else {
+                                helper.setTextColor(R.id.day, getResources().getColor(R.color.unselected_text));
+                            }
                             break;
                         }
                         case CalendarEntity.SELECTED_SELECTED: {
