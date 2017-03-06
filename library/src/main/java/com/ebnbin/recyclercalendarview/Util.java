@@ -28,6 +28,11 @@ final class Util {
      */
     public static final int MONTH_TO;
 
+    /**
+     * 默认最大双选数量.
+     */
+    public static final int MAX_DOUBLE_SELECTED_COUNT = 90;
+
     static {
         int[] date = getDate();
 
