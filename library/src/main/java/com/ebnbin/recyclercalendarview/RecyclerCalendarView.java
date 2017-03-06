@@ -157,10 +157,25 @@ public class RecyclerCalendarView extends FrameLayout {
     /**
      * 滚动到今天.
      */
-    private void scrollToToday() {
+    public void scrollToToday() {
         int[] date = Util.getDate();
         int position = Util.getPosition(mCalendarData, date[0], date[1], date[2]);
         scrollToPosition(position);
+    }
+
+    /**
+     * 滚动到选中的 position, 如果没有选中的 position 则不滚动.
+     */
+    public void scrollToSelected() {
+        if (mDoubleSelected && mDoubleSelectedPositionA != -1) {
+            if (mDoubleSelectedPositionB == -1) {
+                scrollToPosition(mDoubleSelectedPositionA);
+            } else {
+                scrollToPosition(Math.min(mDoubleSelectedPositionA, mDoubleSelectedPositionB));
+            }
+        } else if (!mDoubleSelected && mSingleSelectedPosition != -1) {
+            scrollToPosition(mSingleSelectedPosition);
+        }
     }
 
     /**
@@ -192,15 +207,15 @@ public class RecyclerCalendarView extends FrameLayout {
     /**
      * 设置是否双选, 并清除全部选中日期.
      *
-     * @param scrollToPosition
+     * @param scrollToToday
      *         如果为 true 则滚动到今天, 默认为 false.
      */
-    public void setDoubleSelect(boolean doubleSelect, boolean scrollToPosition) {
+    public void setDoubleSelect(boolean doubleSelect, boolean scrollToToday) {
         mDoubleSelected = doubleSelect;
 
         clearSelected();
 
-        if (scrollToPosition) {
+        if (scrollToToday) {
             scrollToToday();
         }
     }
