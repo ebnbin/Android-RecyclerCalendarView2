@@ -25,15 +25,6 @@ import java.util.Locale;
  * 列表日历 view.
  */
 public class RecyclerCalendarView extends FrameLayout {
-    /**
-     * 单选类型.
-     */
-    public static final int SELECT_SINGLE = 0;
-    /**
-     * 双选类型.
-     */
-    public static final int SELECT_DOUBLE = 1;
-
     private PinnedHeaderRecyclerView mCalendarRecyclerView;
 
     private GridLayoutManager mCalendarLayoutManager;
@@ -43,14 +34,23 @@ public class RecyclerCalendarView extends FrameLayout {
     private CalendarAdapter mCalendarAdapter;
 
     /**
-     * 如果为 false 则为单选类型, 否则为双选类型.
+     * 如果为 false 则为单选, 否则为双选.
      */
     private boolean mDoubleSelect;
 
     /**
-     * 当前单选选中 position.
+     * 当前单选选中的 position.
      */
     private int mSingleSelectedPosition;
+
+    /**
+     * 当前双选选中的第一个 position.
+     */
+    private int mDoubleSelectedPositionA;
+    /**
+     * 当前双选选中的第二个 position.
+     */
+    private int mDoubleSelectedPositionB;
 
     /**
      * 滚动到的 position, 如果为 -1 则不滚动.
@@ -99,7 +99,14 @@ public class RecyclerCalendarView extends FrameLayout {
         setYearMonthRange(Util.YEAR_FROM, Util.MONTH_FROM, Util.YEAR_TO, Util.MONTH_TO);
 
         int[] date = Util.getDate();
-        singleSelect(date[0], date[1], date[2]);
+        setSelected(date[0], date[1], date[2]);
+    }
+
+    /**
+     * 返回是否双选.
+     */
+    public boolean isDoubleSelect() {
+        return mDoubleSelect;
     }
 
     /**
@@ -125,6 +132,15 @@ public class RecyclerCalendarView extends FrameLayout {
     }
 
     /**
+     * 滚动到今天.
+     */
+    private void scrollToToday() {
+        int[] date = Util.getDate();
+        int position = Util.getPosition(mCalendarData, date[0], date[1], date[2]);
+        scrollToPosition(position);
+    }
+
+    /**
      * 滚动到指定的 position.
      *
      * @param scrollToPosition
@@ -138,12 +154,125 @@ public class RecyclerCalendarView extends FrameLayout {
             return;
         }
 
-        if (mDoubleSelect) {
-        } else {
-            int offset = calendarRecyclerViewMeasuredHeight / 2;
-            mCalendarLayoutManager.scrollToPositionWithOffset(mScrollToPosition, offset);
-            mScrollToPosition = -1;
+        int offset = calendarRecyclerViewMeasuredHeight / 2;
+        mCalendarLayoutManager.scrollToPositionWithOffset(mScrollToPosition, offset);
+        mScrollToPosition = -1;
+    }
+
+    /**
+     * 设置是否双选.
+     */
+    public void setDoubleSelect(boolean doubleSelect) {
+        setDoubleSelect(doubleSelect, false);
+    }
+
+    /**
+     * 设置是否双选.
+     *
+     * @param scrollToPosition
+     *         如果为 true 则滚动到今天, 默认为 false.
+     */
+    public void setDoubleSelect(boolean doubleSelect, boolean scrollToPosition) {
+        mDoubleSelect = doubleSelect;
+
+        clearSelected();
+
+        if (scrollToPosition) {
+            scrollToToday();
         }
+    }
+
+    /**
+     * 设置单选日期并滚动到选中的 position.
+     */
+    public void setSelected(int year, int month, int day) {
+        setSelected(year, month, day, true);
+    }
+
+    /**
+     * 设置单选日期.
+     *
+     * @param scrollToPosition
+     *         如果为 true 则滚动到选中的 position.
+     */
+    public void setSelected(int year, int month, int day, boolean scrollToPosition) {
+        setDoubleSelect(false);
+
+        int position = Util.getPosition(mCalendarData, year, month, day);
+
+        setPositionSelected(position, CalendarEntity.SELECTED_SELECTED);
+        mSingleSelectedPosition = position;
+
+        mCalendarAdapter.notifyDataSetChanged();
+
+        if (scrollToPosition) {
+            scrollToPosition(position);
+        }
+    }
+
+    /**
+     * 设置双选日期并滚动到选中的开始 position.
+     */
+    public void setSelected(int fromYear, int fromMonth, int fromDay, int toYear, int toMonth, int toDay) {
+        setSelected(fromYear, fromMonth, fromDay, toYear, toMonth, toDay, true);
+    }
+
+    /**
+     * 设置双选日期.
+     *
+     * @param scrollToPosition
+     *         如果为 true 则滚动到选中的开始 position.
+     */
+    public void setSelected(int fromYear, int fromMonth, int fromDay, int toYear, int toMonth, int toDay,
+            boolean scrollToPosition) {
+        setDoubleSelect(true);
+
+        int fromPosition = Util.getPosition(mCalendarData, fromYear, fromMonth, fromDay);
+        int toPosition = Util.getPosition(mCalendarData, toYear, toMonth, toDay);
+
+        setPositionSelected(fromPosition, CalendarEntity.SELECTED_SELECTED);
+        mDoubleSelectedPositionA = fromPosition;
+        setPositionSelected(toPosition, CalendarEntity.SELECTED_SELECTED);
+        mDoubleSelectedPositionB = toPosition;
+        for (int i = fromPosition + 1; i < toPosition; i++) {
+            setPositionSelected(i, CalendarEntity.SELECTED_RANGED);
+        }
+
+        mCalendarAdapter.notifyDataSetChanged();
+
+        if (scrollToPosition) {
+            scrollToPosition(fromPosition);
+        }
+    }
+
+    /**
+     * 清除全部选中日期.
+     */
+    public void clearSelected() {
+        if (mSingleSelectedPosition != -1) {
+            setPositionSelected(mSingleSelectedPosition, CalendarEntity.SELECTED_UNSELECTED);
+            mSingleSelectedPosition = -1;
+        }
+        if (mDoubleSelectedPositionA != -1 && mDoubleSelectedPositionB != -1) {
+            int fromPosition = Math.min(mDoubleSelectedPositionA, mDoubleSelectedPositionB);
+            int toPosition = Math.max(mDoubleSelectedPositionA, mDoubleSelectedPositionB);
+            for (int i = fromPosition; i <= toPosition; i++) {
+                setPositionSelected(i, CalendarEntity.SELECTED_UNSELECTED);
+            }
+            mDoubleSelectedPositionA = -1;
+            mDoubleSelectedPositionB = -1;
+        } else {
+            if (mDoubleSelectedPositionA != -1) {
+                setPositionSelected(mDoubleSelectedPositionA, CalendarEntity.SELECTED_UNSELECTED);
+                mDoubleSelectedPositionA = -1;
+            }
+            if (mDoubleSelectedPositionB != -1) {
+                setPositionSelected(mDoubleSelectedPositionB, CalendarEntity.SELECTED_UNSELECTED);
+                mDoubleSelectedPositionB = -1;
+            }
+        }
+
+        mCalendarAdapter.notifyDataSetChanged();
     }
 
     /**
@@ -193,10 +322,7 @@ public class RecyclerCalendarView extends FrameLayout {
                         @Override
                         public void onClick(View v) {
                             if (item.dayEnabled) {
-                                if (mDoubleSelect) {
-                                } else {
-                                    singleSelect(helper, item);
-                                }
+                                clickDate(helper.getLayoutPosition(), item.year, item.month, item.day);
                             }
                         }
                     });
@@ -206,6 +332,104 @@ public class RecyclerCalendarView extends FrameLayout {
                     break;
                 }
             }
+        }
+
+        /**
+         * 点击某日期.
+         */
+        private void clickDate(int position, int year, int month, int day) {
+            if (mDoubleSelect) {
+                // 双选.
+                if (mDoubleSelectedPositionA == -1) {
+                    // 两个都未选中.
+                    if (mDoubleSelectedPositionB != -1) {
+                        // 非正常情况, 容错代码.
+                        setPositionSelected(mDoubleSelectedPositionB, CalendarEntity.SELECTED_UNSELECTED);
+                        mDoubleSelectedPositionB = -1;
+                    }
+                    // 要选中第一个.
+                    setPositionSelected(position, CalendarEntity.SELECTED_SELECTED);
+                    mDoubleSelectedPositionA = position;
+                    onDoubleFirstSelected(year, month, day);
+                } else if (mDoubleSelectedPositionB == -1) {
+                    // 已选中第一个.
+                    if (position == mDoubleSelectedPositionA) {
+                        // 要取消选中第一个.
+                        setPositionSelected(position, CalendarEntity.SELECTED_UNSELECTED);
+                        mDoubleSelectedPositionA = -1;
+                        onDoubleFirstUnselected(year, month, day);
+                    } else {
+                        // 要选中第二个.
+                        setPositionSelected(position, CalendarEntity.SELECTED_SELECTED);
+                        mDoubleSelectedPositionB = position;
+                        int fromPosition = Math.min(mDoubleSelectedPositionA, mDoubleSelectedPositionB);
+                        int toPosition = Math.max(mDoubleSelectedPositionA, mDoubleSelectedPositionB);
+                        for (int i = fromPosition + 1; i < toPosition; i++) {
+                            setPositionSelected(i, CalendarEntity.SELECTED_RANGED);
+                        }
+                        CalendarEntity fromCalendarEntity = mCalendarData.get(fromPosition);
+                        CalendarEntity toCalendarEntity = mCalendarData.get(toPosition);
+                        onDoubleSelected(fromCalendarEntity.year, fromCalendarEntity.month, fromCalendarEntity.day,
+                                toCalendarEntity.year, toCalendarEntity.month, toCalendarEntity.day);
+                    }
+                } else {
+                    // 两个都已选中.
+                    int fromPosition = Math.min(mDoubleSelectedPositionA, mDoubleSelectedPositionB);
+                    int toPosition = Math.max(mDoubleSelectedPositionA, mDoubleSelectedPositionB);
+                    for (int i = fromPosition; i <= toPosition; i++) {
+                        setPositionSelected(i, CalendarEntity.SELECTED_UNSELECTED);
+                    }
+                    mDoubleSelectedPositionB = -1;
+                    setPositionSelected(position, CalendarEntity.SELECTED_SELECTED);
+                    mDoubleSelectedPositionA = position;
+                    onDoubleFirstSelected(year, month, day);
+                }
+            } else {
+                if (mSingleSelectedPosition != position) {
+                    // 要选中另一个.
+                    if (mSingleSelectedPosition != -1) {
+                        setPositionSelected(mSingleSelectedPosition, CalendarEntity.SELECTED_UNSELECTED);
+                    }
+                    setPositionSelected(position, CalendarEntity.SELECTED_SELECTED);
+                    mSingleSelectedPosition = position;
+                }
+
+                onSingleSelected(year, month, day);
+            }
+
+            mCalendarAdapter.notifyDataSetChanged();
+        }
+
+        /**
+         * 单选回调.
+         */
+        private void onSingleSelected(int year, int month, int day) {
+            Toast.makeText(getContext(), String.format(Locale.getDefault(), "%d年%d月%d日", year, month, day),
+                    Toast.LENGTH_SHORT).show();
+        }
+
+        /**
+         * 双选回调.
+         */
+        private void onDoubleSelected(int yearFrom, int monthFrom, int dayFrom, int yearTo, int monthTo, int dayTo) {
+            Toast.makeText(getContext(), String.format(Locale.getDefault(), "%d年%d月%d日 ~ %d年%d月%d日", yearFrom,
+                    monthFrom, dayFrom, yearTo, monthTo, dayTo), Toast.LENGTH_SHORT).show();
+        }
+
+        /**
+         * 双选选中第一个日期回调.
+         */
+        private void onDoubleFirstSelected(int year, int month, int day) {
+            Toast.makeText(getContext(), String.format(Locale.getDefault(), "已选中 %d年%d月%d日", year, month, day),
+                    Toast.LENGTH_SHORT).show();
+        }
+
+        /**
+         * 双选取消选中第一个日期回调.
+         */
+        private void onDoubleFirstUnselected(int year, int month, int day) {
+            Toast.makeText(getContext(), String.format(Locale.getDefault(), "已取消选中 %d年%d月%d日", year, month, day),
+                    Toast.LENGTH_SHORT).show();
         }
 
         @Override
@@ -234,47 +458,12 @@ public class RecyclerCalendarView extends FrameLayout {
     }
 
     /**
-     * 点击 item 单选.
+     * 设置某位置的选中状态.
      */
-    private void singleSelect(BaseViewHolder helper, CalendarEntity item) {
-        internalSingleSelect(helper.getLayoutPosition(), item.year, item.month, item.day, true);
-    }
-
-    /**
-     * 指定年月日单选.
-     */
-    public void singleSelect(int year, int month, int day) {
-        int position = Util.getPosition(mCalendarData, year, month, day);
-        internalSingleSelect(position, year, month, day, false);
-
-        scrollToPosition(position);
-    }
-
-    /**
-     * 内部单选方法.
-     *
-     * @param callback
-     *         是否回调.
-     */
-    private void internalSingleSelect(int position, int year, int month, int day, boolean callback) {
-        if (mSingleSelectedPosition != position) {
-            mCalendarData.get(mSingleSelectedPosition).selected = CalendarEntity.SELECTED_UNSELECTED;
-            mSingleSelectedPosition = position;
+    private void setPositionSelected(int position, int selected) {
+        CalendarEntity calendarEntity = mCalendarData.get(position);
+        if (calendarEntity.dayEnabled) {
+            calendarEntity.selected = selected;
         }
-        mCalendarData.get(position).selected = CalendarEntity.SELECTED_SELECTED;
-
-        if (callback) {
-            onSingleSelected(year, month, day);
-        }
-
-        mCalendarAdapter.notifyDataSetChanged();
-    }
-
-    /**
-     * 单选回调.
-     */
-    private void onSingleSelected(int year, int month, int day) {
-        Toast.makeText(getContext(), String.format(Locale.getDefault(), "%d年%d月%d日", year, month, day),
-                Toast.LENGTH_SHORT).show();
     }
 }
