@@ -12,5 +12,7 @@
         android:layout_height="0dp"
         android:layout_weight="1"
         android:gravity="center"
+        android:textColor="@color/year_month_text"
+        android:textSize="@dimen/year_month_text_size"
         android:background="@color/year_month_background"/>
 </LinearLayout>

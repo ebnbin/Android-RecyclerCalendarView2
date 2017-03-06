@@ -101,7 +101,7 @@ public class RecyclerCalendarView extends FrameLayout {
 
         mCalendarRecyclerView.setPinnedHeaderView(R.layout.item_year_month);
 
-        setYearMonthRange(Util.YEAR_FROM, Util.MONTH_FROM, Util.YEAR_TO, Util.MONTH_TO);
+        setYearMonthRange();
 
         mMaxDoubleSelectedCount = Util.MAX_DOUBLE_SELECTED_COUNT;
 
@@ -126,15 +126,15 @@ public class RecyclerCalendarView extends FrameLayout {
     /**
      * 设置年月范围. 年份 1970 ~ 2037, 月份 1 ~ 12, to 日期必须大于 from 日期.
      */
-    public void setYearMonthRange(int yearFrom, int monthFrom, int yearTo, int monthTo) {
-        if (yearFrom < Util.MIN_YEAR || yearFrom > Util.MAX_YEAR
-                || monthFrom < 1 || monthFrom > 12
-                || yearTo < yearFrom
-                || yearTo == yearFrom && monthTo < monthFrom) {
-            return;
-        }
-
-        mCalendarData = Util.getCalendarData(getContext(), yearFrom, monthFrom, yearTo, monthTo);
+    private void setYearMonthRange() {
+//        if (yearFrom < Util.MIN_YEAR || yearFrom > Util.MAX_YEAR
+//                || monthFrom < 1 || monthFrom > 12
+//                || yearTo < yearFrom
+//                || yearTo == yearFrom && monthTo < monthFrom) {
+//            return;
+//        }
+//
+        mCalendarData = Util.getCalendarData(getContext(), mDoubleSelected);
         mCalendarAdapter.setNewData(mCalendarData);
     }
 
@@ -198,22 +198,29 @@ public class RecyclerCalendarView extends FrameLayout {
     }
 
     /**
-     * 设置是否双选, 并清除全部选中日期.
+     * 设置是否双选, 并恢复默认选中日期.
      */
     public void setDoubleSelected(boolean doubleSelected) {
         setDoubleSelect(doubleSelected, false);
     }
 
     /**
-     * 设置是否双选, 并清除全部选中日期.
+     * 设置是否双选, 并恢复默认选中日期.
      *
      * @param scrollToToday
      *         如果为 true 则滚动到今天, 默认为 false.
      */
     public void setDoubleSelect(boolean doubleSelect, boolean scrollToToday) {
-        mDoubleSelected = doubleSelect;
+        if (mDoubleSelected != doubleSelect) {
+            mDoubleSelected = doubleSelect;
 
-        clearSelected();
+            setYearMonthRange();
+
+            if (!mDoubleSelected) {
+                int[] date = Util.getDate();
+                setSelected(date[0], date[1], date[2], false);
+            }
+        }
 
         if (scrollToToday) {
             scrollToToday();
@@ -270,7 +277,7 @@ public class RecyclerCalendarView extends FrameLayout {
 
         int selectedCount = 0;
         for (int i = fromPosition; i <= toPosition; i++) {
-            if (mCalendarAdapter.getItem(i).dayEnabled) {
+            if (mCalendarAdapter.getItem(i).isDayNotEmpty) {
                 ++selectedCount;
             }
         }
@@ -346,47 +353,76 @@ public class RecyclerCalendarView extends FrameLayout {
                     break;
                 }
                 case CalendarEntity.TYPE_DATE: {
-                    helper.getView(R.id.root).setEnabled(item.dayEnabled);
+                    final boolean dateEnable = item.isDayNotEmpty
+                            && (mDoubleSelected ? !item.isFuture : (!item.isFuture || item.isSpecial));
 
-                    switch (item.selected) {
-                        case CalendarEntity.SELECTED_UNSELECTED: {
-                            helper.setBackgroundColor(R.id.root,
-                                    getResources().getColor(R.color.unselected_background));
-                            if (item.isToday) {
-                                helper.setTextColor(R.id.day, getResources().getColor(R.color.unselected_today_text));
-                            } else if (item.isFestival) {
-                                helper.setTextColor(R.id.day,
-                                        getResources().getColor(R.color.unselected_festival_text));
-                            } else if (item.isWeekend) {
-                                helper.setTextColor(R.id.day,
-                                        getResources().getColor(R.color.unselected_weekend_text));
-                            } else {
-                                helper.setTextColor(R.id.day, getResources().getColor(R.color.unselected_text));
+                    helper.getView(R.id.root).setEnabled(dateEnable);
+
+                    if (dateEnable) {
+                        switch (item.selected) {
+                            case CalendarEntity.SELECTED_UNSELECTED: {
+                                helper.setBackgroundColor(R.id.root,
+                                        getResources().getColor(R.color.unselected_background));
+                                if (item.isToday) {
+                                    helper.setTextColor(R.id.day,
+                                            getResources().getColor(R.color.unselected_today_text));
+                                    helper.setTextColor(R.id.special,
+                                            getResources().getColor(R.color.unselected_today_text));
+                                } else if (item.isSpecial) {
+                                    helper.setTextColor(R.id.day,
+                                            getResources().getColor(R.color.unselected_special_text));
+                                    helper.setTextColor(R.id.special,
+                                            getResources().getColor(R.color.unselected_special_text));
+                                } else if (item.isFestival) {
+                                    helper.setTextColor(R.id.day,
+                                            getResources().getColor(R.color.unselected_festival_text));
+                                    helper.setTextColor(R.id.special,
+                                            getResources().getColor(R.color.unselected_festival_text));
+                                } else if (item.isWeekend) {
+                                    helper.setTextColor(R.id.day,
+                                            getResources().getColor(R.color.unselected_weekend_text));
+                                    helper.setTextColor(R.id.special,
+                                            getResources().getColor(R.color.unselected_weekend_text));
+                                } else {
+                                    helper.setTextColor(R.id.day, getResources().getColor(R.color.unselected_text));
+                                    helper.setTextColor(R.id.special,
+                                            getResources().getColor(R.color.unselected_text));
+                                }
+                                break;
                             }
-                            break;
+                            case CalendarEntity.SELECTED_SELECTED: {
+                                helper.setBackgroundColor(R.id.root,
+                                        getResources().getColor(R.color.selected_background));
+                                helper.setTextColor(R.id.day, getResources().getColor(R.color.selected_text));
+                                helper.setTextColor(R.id.special, getResources().getColor(R.color.selected_text));
+                                break;
+                            }
+                            case CalendarEntity.SELECTED_RANGED: {
+                                helper.setBackgroundColor(R.id.root,
+                                        getResources().getColor(R.color.ranged_background));
+                                helper.setTextColor(R.id.day, getResources().getColor(R.color.selected_text));
+                                helper.setTextColor(R.id.special, getResources().getColor(R.color.selected_text));
+                                break;
+                            }
                         }
-                        case CalendarEntity.SELECTED_SELECTED: {
-                            helper.setBackgroundColor(R.id.root, getResources().getColor(R.color.selected_background));
-                            helper.setTextColor(R.id.day, getResources().getColor(R.color.selected_text));
-                            break;
-                        }
-                        case CalendarEntity.SELECTED_RANGED: {
-                            helper.setBackgroundColor(R.id.root, getResources().getColor(R.color.ranged_background));
-                            helper.setTextColor(R.id.day, getResources().getColor(R.color.selected_text));
-                            break;
-                        }
+                    } else {
+                        helper.setBackgroundColor(R.id.root, getResources().getColor(R.color.unselected_background));
+                        helper.setTextColor(R.id.day, getResources().getColor(R.color.disabled_text));
+                        helper.setTextColor(R.id.special, getResources().getColor(R.color.disabled_text));
                     }
 
                     helper.getView(R.id.root).setOnClickListener(new OnClickListener() {
                         @Override
                         public void onClick(View v) {
-                            if (item.dayEnabled) {
+                            if (dateEnable) {
                                 clickDate(helper.getLayoutPosition(), item.year, item.month, item.day);
                             }
                         }
                     });
 
                     helper.setText(R.id.day, item.dayString);
+                    helper.setText(R.id.special, dateEnable && !mDoubleSelected && item.isSpecial
+                            ? Util.SPECIAL_STRING : "");
 
                     break;
                 }
@@ -424,7 +460,7 @@ public class RecyclerCalendarView extends FrameLayout {
 
                         int selectedCount = 0;
                         for (int i = fromPosition; i <= toPosition; i++) {
-                            if (mCalendarAdapter.getItem(i).dayEnabled) {
+                            if (mCalendarAdapter.getItem(i).isDayNotEmpty) {
                                 ++selectedCount;
                             }
                         }
@@ -503,7 +539,7 @@ public class RecyclerCalendarView extends FrameLayout {
      */
     private void setPositionSelected(int position, int selected) {
         CalendarEntity calendarEntity = mCalendarData.get(position);
-        if (calendarEntity.dayEnabled) {
+        if (calendarEntity.isDayNotEmpty) {
             calendarEntity.selected = selected;
         }
     }

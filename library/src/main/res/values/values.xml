@@ -10,8 +10,12 @@
     <color name="unselected_text">#000</color>
     <color name="selected_text">#fff</color>
     <color name="unselected_today_text">#f00</color>
+    <color name="unselected_special_text">#fa0</color>
     <color name="unselected_festival_text">#f00</color>
     <color name="unselected_weekend_text">#f00</color>
+    <color name="disabled_text">#ccc</color>
+    <color name="week_text">#888</color>
+    <color name="year_month_text">#444</color>
 
     <dimen name="weeks_height">40dp</dimen>
     <dimen name="date_height">48dp</dimen>
@@ -19,6 +23,10 @@
     <dimen name="divider_height">0.5dp</dimen>
     <dimen name="placeholder_height">64dp</dimen>
     <dimen name="calendar_margin_top">39.5dp</dimen>
+    <dimen name="week_text_size">11sp</dimen>
+    <dimen name="year_month_text_size">12sp</dimen>
+    <dimen name="day_text_size">13sp</dimen>
+    <dimen name="special_text_size">10sp</dimen>
 
     <string name="sunday">日</string>
     <string name="monday">一</string>
@@ -33,5 +41,7 @@
         <item name="android:layout_height">match_parent</item>
         <item name="android:layout_weight">1</item>
         <item name="android:gravity">center</item>
+        <item name="android:textColor">@color/week_text</item>
+        <item name="android:textSize">@dimen/week_text_size</item>
     </style>
 </resources>

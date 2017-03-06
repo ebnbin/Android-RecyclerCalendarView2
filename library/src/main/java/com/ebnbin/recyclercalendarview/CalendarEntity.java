@@ -28,9 +28,9 @@ final class CalendarEntity implements MultiItemEntity {
      */
     private static final int DAY_NOT_DATE = -1;
     /**
-     * 无效的日.
+     * 月初空白的日.
      */
-    public static final int DAY_DISABLED = 0;
+    public static final int DAY_EMPTY = 0;
 
     /**
      * 占位符类型的日期.
@@ -60,6 +60,14 @@ final class CalendarEntity implements MultiItemEntity {
      * 是否为节日.
      */
     public final boolean isFestival;
+    /**
+     * 是否为未来的日期.
+     */
+    public final boolean isFuture;
+    /**
+     * 是否为特殊的日期.
+     */
+    public final boolean isSpecial;
 
     /**
      * 类型.
@@ -67,9 +75,9 @@ final class CalendarEntity implements MultiItemEntity {
     public final int itemType;
 
     /**
-     * 日是否有效.
+     * 是否不是月初空白的日.
      */
-    public final boolean dayEnabled;
+    public final boolean isDayNotEmpty;
 
     /**
      * 是否为当前年月的最后一个星期日.
@@ -125,15 +133,17 @@ final class CalendarEntity implements MultiItemEntity {
         isToday = Util.isToday(this.year, this.month, this.day);
         isWeekend = this.week == 0 || this.week == 6;
         isFestival = !TextUtils.isEmpty(this.festival);
+        isFuture = Util.isFuture(this.year, this.month, this.day);
+        isSpecial = Util.isFuture(this.year, this.month, this.day, Util.SPECIAL_DAYS);
 
         itemType = this.day == DAY_NOT_DATE ? TYPE_YEAR_MONTH : TYPE_DATE;
 
-        dayEnabled = itemType == TYPE_DATE && this.day != DAY_DISABLED;
+        isDayNotEmpty = itemType == TYPE_DATE && this.day != DAY_EMPTY;
 
         this.isLastSundayOfYearMonth = isLastSundayOfYearMonth;
 
         yearMonthString = String.format(Locale.getDefault(), "%d年%d月", this.year, this.month);
-        if (this.dayEnabled) {
+        if (this.isDayNotEmpty) {
             if (isToday) {
                 dayString = "今天";
             } else if (isFestival) {
@@ -160,10 +170,12 @@ final class CalendarEntity implements MultiItemEntity {
 
         isWeekend = false;
         isFestival = false;
+        isFuture = false;
+        isSpecial = false;
 
         itemType = TYPE_PLACEHOLDER;
 
-        dayEnabled = false;
+        isDayNotEmpty = false;
 
         isLastSundayOfYearMonth = false;
 

@@ -43,6 +43,15 @@ final class Util {
      */
     public static final int MAX_DOUBLE_SELECTED_COUNT = 90;
 
+    /**
+     * 默认特殊日期天数.
+     */
+    public static final int SPECIAL_DAYS = 15;
+    /**
+     * 默认特殊日期字符串.
+     */
+    public static final String SPECIAL_STRING = "预售";
+
     static {
         int[] date = getDate();
 
@@ -67,7 +76,24 @@ final class Util {
     /**
      * 返回日历数据.
      */
-    public static List<CalendarEntity> getCalendarData(Context context, int yearFrom, int monthFrom, int yearTo,
+    public static List<CalendarEntity> getCalendarData(Context context, boolean doubleSelected) {
+        if (doubleSelected) {
+            return getCalendarData(context, YEAR_FROM, MONTH_FROM, YEAR_TO, MONTH_TO);
+        }
+
+        int[] todayDate = getDate();
+        int[] toDate = addDate(todayDate[0], todayDate[1], todayDate[2], SPECIAL_DAYS);
+
+        int yearTo = toDate[0];
+        int monthTo = toDate[1];
+
+        return getCalendarData(context, YEAR_FROM, MONTH_FROM, yearTo, monthTo);
+    }
+
+    /**
+     * 返回日历数据.
+     */
+    private static List<CalendarEntity> getCalendarData(Context context, int yearFrom, int monthFrom, int yearTo,
             int monthTo) {
         List<CalendarEntity> calendarData = new ArrayList<>();
 
@@ -86,7 +112,7 @@ final class Util {
 
                 for (int disabledDay = 0; disabledDay < weekOfFirstDayOfYearMonth; disabledDay++) {
                     CalendarEntity disabledDayCalendarEntity = new CalendarEntity(year, month,
-                            CalendarEntity.DAY_DISABLED, CalendarEntity.DAY_DISABLED, null, false);
+                            CalendarEntity.DAY_EMPTY, CalendarEntity.DAY_EMPTY, null, false);
                     calendarData.add(disabledDayCalendarEntity);
                 }
 
@@ -121,11 +147,58 @@ final class Util {
     }
 
     /**
+     * 日期计算.
+     *
+     * @param days
+     *         增加天数.
+     *
+     * @return 计算后的日期.
+     */
+    private static int[] addDate(int year, int month, int day, int days) {
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(year, month, day);
+        calendar.add(Calendar.DATE, days);
+
+        int[] date = new int[3];
+        date[0] = calendar.get(Calendar.YEAR);
+        date[1] = calendar.get(Calendar.MONTH);
+        date[2] = calendar.get(Calendar.DATE);
+
+        return date;
+    }
+
+    /**
      * 返回某日期是否为今天.
      */
     public static boolean isToday(int year, int month, int day) {
         int[] date = getDate();
         return year == date[0] && month == date[1] && day == date[2];
+    }
+
+    /**
+     * 返回某日期是否是未来日期.
+     */
+    public static boolean isFuture(int year, int month, int day) {
+        return isFuture(year, month, day, 0);
+    }
+
+    /**
+     * 返回某日期是否是未来日期, 并在一定天数及以内.
+     *
+     * @param within
+     *         天数范围.
+     */
+    public static boolean isFuture(int year, int month, int day, int within) {
+        int[] date = getDate();
+        int todayDaysFrom19700101 = getDaysFrom19700101(date[0], date[1], date[2]);
+        int futureDaysFrom19700101 = getDaysFrom19700101(year, month, day);
+
+        if (within <= 0) {
+            return futureDaysFrom19700101 > todayDaysFrom19700101;
+        } else {
+            return futureDaysFrom19700101 > todayDaysFrom19700101
+                    && futureDaysFrom19700101 <= todayDaysFrom19700101 + within;
+        }
     }
 
     /**
