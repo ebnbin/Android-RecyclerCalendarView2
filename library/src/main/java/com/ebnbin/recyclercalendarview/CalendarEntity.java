@@ -84,9 +84,8 @@ final class CalendarEntity implements MultiItemEntity {
                 calendarData.add(yearMonthCalendarEntity);
 
                 for (int disabledDay = 0; disabledDay < weekOfFirstDayOfYearMonth; disabledDay++) {
-                    CalendarEntity disabledDayCalendarEntity = new CalendarEntity(year, month,
-                            CalendarEntity.DAY_EMPTY, CalendarEntity.DAY_EMPTY, null, false);
-                    calendarData.add(disabledDayCalendarEntity);
+                    CalendarEntity emptyDayCalendarEntity = new CalendarEntity(TYPE_EMPTY_DAY);
+                    calendarData.add(emptyDayCalendarEntity);
                 }
 
                 int daysOfYearMonth = Util.getDaysOfYearMonth(year, month);
@@ -113,8 +112,8 @@ final class CalendarEntity implements MultiItemEntity {
             }
         }
 
-        CalendarEntity placeHolderCalendarEntity = new CalendarEntity();
-        calendarData.add(placeHolderCalendarEntity);
+        CalendarEntity dividerCalendarEntity = new CalendarEntity(TYPE_DIVIDER);
+        calendarData.add(dividerCalendarEntity);
 
         return calendarData;
     }
@@ -193,23 +192,18 @@ final class CalendarEntity implements MultiItemEntity {
      */
     public static final int TYPE_DATE = 1;
     /**
-     * 占位符类型.
+     * 空白日期类型.
      */
-    public static final int TYPE_PLACEHOLDER = 2;
+    public static final int TYPE_EMPTY_DAY = 2;
+    /**
+     * 分隔符类型.
+     */
+    public static final int TYPE_DIVIDER = 3;
 
     /**
      * 非日期类型的日.
      */
     private static final int DAY_NOT_DATE = -1;
-    /**
-     * 月初空白的日.
-     */
-    public static final int DAY_EMPTY = 0;
-
-    /**
-     * 占位符类型的日期.
-     */
-    private static final int DATE_PLACEHOLDER = -2;
 
     public final int year;
     public final int month;
@@ -247,11 +241,6 @@ final class CalendarEntity implements MultiItemEntity {
      * 类型.
      */
     public final int itemType;
-
-    /**
-     * 是否不是月初空白的日.
-     */
-    public final boolean isDayNotEmpty;
 
     /**
      * 是否为当前年月的最后一个星期日.
@@ -305,8 +294,6 @@ final class CalendarEntity implements MultiItemEntity {
 
         itemType = TYPE_YEAR_MONTH;
 
-        isDayNotEmpty = false;
-
         isLastSundayOfYearMonth = false;
 
         yearMonthString = String.format(Locale.getDefault(), "%d年%d月", this.year, this.month);
@@ -333,44 +320,37 @@ final class CalendarEntity implements MultiItemEntity {
 
         itemType = this.day == DAY_NOT_DATE ? TYPE_YEAR_MONTH : TYPE_DATE;
 
-        isDayNotEmpty = itemType == TYPE_DATE && this.day != DAY_EMPTY;
-
         this.isLastSundayOfYearMonth = isLastSundayOfYearMonth;
 
         yearMonthString = String.format(Locale.getDefault(), "%d年%d月", this.year, this.month);
-        if (this.isDayNotEmpty) {
-            if (isToday) {
-                dayString = "今天";
-            } else if (isFestival) {
-                dayString = this.festival;
-            } else {
-                dayString = String.valueOf(this.day);
-            }
+        if (isToday) {
+            dayString = "今天";
+        } else if (isFestival) {
+            dayString = this.festival;
         } else {
-            dayString = "";
+            dayString = String.valueOf(this.day);
         }
     }
 
     /**
-     * 创建一个占位符类型的日历实体.
+     * 创建一个月份占位符类型的日历实体.
      */
-    private CalendarEntity() {
-        year = DATE_PLACEHOLDER;
-        month = DATE_PLACEHOLDER;
-        day = DATE_PLACEHOLDER;
+    private CalendarEntity(int placeHolderType) {
+        year = DAY_NOT_DATE;
+        month = DAY_NOT_DATE;
+        day = DAY_NOT_DATE;
+
+        week = DAY_NOT_DATE;
+
+        festival = "";
 
         isToday = false;
-        week = DATE_PLACEHOLDER;
-        festival = null;
-
         isWeekend = false;
         isFestival = false;
         isPresent = false;
         isSpecial = false;
 
-        itemType = TYPE_PLACEHOLDER;
-
-        isDayNotEmpty = false;
+        itemType = placeHolderType;
 
         isLastSundayOfYearMonth = false;
 

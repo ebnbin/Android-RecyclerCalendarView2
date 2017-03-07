@@ -5,7 +5,7 @@
     android:layout_height="@dimen/year_month_height"
     android:orientation="vertical">
     <include
-        layout="@layout/view_divider"/>
+        layout="@layout/item_divider"/>
     <TextView
         android:id="@+id/year_month"
         android:layout_width="match_parent"

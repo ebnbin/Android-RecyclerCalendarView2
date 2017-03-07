@@ -277,7 +277,7 @@ public class RecyclerCalendarView extends FrameLayout {
 
         int selectedCount = 0;
         for (int i = fromPosition; i <= toPosition; i++) {
-            if (mCalendarAdapter.getItem(i).isDayNotEmpty) {
+            if (mCalendarAdapter.getItem(i).getItemType() == CalendarEntity.TYPE_DATE) {
                 ++selectedCount;
             }
         }
@@ -341,7 +341,8 @@ public class RecyclerCalendarView extends FrameLayout {
 
             addItemType(CalendarEntity.TYPE_YEAR_MONTH, R.layout.item_year_month);
             addItemType(CalendarEntity.TYPE_DATE, R.layout.item_date);
-            addItemType(CalendarEntity.TYPE_PLACEHOLDER, R.layout.view_divider);
+            addItemType(CalendarEntity.TYPE_EMPTY_DAY, R.layout.item_empty_day);
+            addItemType(CalendarEntity.TYPE_DIVIDER, R.layout.item_divider);
         }
 
         @Override
@@ -353,8 +354,7 @@ public class RecyclerCalendarView extends FrameLayout {
                     break;
                 }
                 case CalendarEntity.TYPE_DATE: {
-                    final boolean dateEnable = item.isDayNotEmpty
-                            && (mDoubleSelected ? item.isPresent : (item.isPresent || item.isSpecial));
+                    final boolean dateEnable = mDoubleSelected ? item.isPresent : (item.isPresent || item.isSpecial);
 
                     helper.getView(R.id.root).setEnabled(dateEnable);
 
@@ -460,7 +460,7 @@ public class RecyclerCalendarView extends FrameLayout {
 
                         int selectedCount = 0;
                         for (int i = fromPosition; i <= toPosition; i++) {
-                            if (mCalendarAdapter.getItem(i).isDayNotEmpty) {
+                            if (mCalendarAdapter.getItem(i).getItemType() == CalendarEntity.TYPE_DATE) {
                                 ++selectedCount;
                             }
                         }
@@ -514,7 +514,7 @@ public class RecyclerCalendarView extends FrameLayout {
             super.onAttachedToRecyclerView(recyclerView);
 
             Util.fullSpan(recyclerView, this, CalendarEntity.TYPE_YEAR_MONTH);
-            Util.fullSpan(recyclerView, this, CalendarEntity.TYPE_PLACEHOLDER);
+            Util.fullSpan(recyclerView, this, CalendarEntity.TYPE_DIVIDER);
         }
 
         @Override
@@ -539,7 +539,7 @@ public class RecyclerCalendarView extends FrameLayout {
      */
     private void setPositionSelected(int position, int selected) {
         CalendarEntity calendarEntity = mCalendarData.get(position);
-        if (calendarEntity.isDayNotEmpty) {
+        if (calendarEntity.getItemType() == CalendarEntity.TYPE_DATE) {
             calendarEntity.selected = selected;
         }
     }
