@@ -36,7 +36,7 @@ public class RecyclerCalendarView extends FrameLayout {
     /**
      * 如果为 false 则为单选, 否则为双选.
      */
-    private boolean mDoubleSelected;
+    private boolean mDoubleSelected = true;
 
     /**
      * 最大双选数量.
@@ -100,8 +100,8 @@ public class RecyclerCalendarView extends FrameLayout {
         mCalendarRecyclerView.setAdapter(mCalendarAdapter);
 
         mCalendarRecyclerView.setPinnedHeaderView(R.layout.item_year_month);
-
-        setYearMonthRange();
+//
+//        setYearMonthRange();
 
         mMaxDoubleSelectedCount = Util.MAX_DOUBLE_SELECTED_COUNT;
 
@@ -134,7 +134,7 @@ public class RecyclerCalendarView extends FrameLayout {
 //            return;
 //        }
 //
-        mCalendarData = Util.getCalendarData(getContext(), mDoubleSelected);
+        mCalendarData = CalendarEntity.getCalendarData(getContext(), mDoubleSelected);
         mCalendarAdapter.setNewData(mCalendarData);
     }
 
@@ -354,7 +354,7 @@ public class RecyclerCalendarView extends FrameLayout {
                 }
                 case CalendarEntity.TYPE_DATE: {
                     final boolean dateEnable = item.isDayNotEmpty
-                            && (mDoubleSelected ? !item.isFuture : (!item.isFuture || item.isSpecial));
+                            && (mDoubleSelected ? item.isPresent : (item.isPresent || item.isSpecial));
 
                     helper.getView(R.id.root).setEnabled(dateEnable);
 
