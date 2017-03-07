@@ -33,6 +33,8 @@ public class RecyclerCalendarView extends FrameLayout {
 
     private CalendarAdapter mCalendarAdapter;
 
+    private int[] mTodayDate;
+
     /**
      * 如果为 false 则为单选, 否则为双选.
      */
@@ -89,6 +91,8 @@ public class RecyclerCalendarView extends FrameLayout {
     }
 
     private void init() {
+        mTodayDate = Util.getTodayDate();
+
         inflate(getContext(), R.layout.view_recycler_calendar, this);
 
         mCalendarRecyclerView = (PinnedHeaderRecyclerView) findViewById(R.id.calendar);
@@ -105,8 +109,7 @@ public class RecyclerCalendarView extends FrameLayout {
 
         mMaxDoubleSelectedCount = Util.MAX_DOUBLE_SELECTED_COUNT;
 
-        int[] date = Util.getDate();
-        setSelected(date[0], date[1], date[2]);
+        setSelected(mTodayDate);
     }
 
     /**
@@ -127,14 +130,7 @@ public class RecyclerCalendarView extends FrameLayout {
      * 设置年月范围. 年份 1970 ~ 2037, 月份 1 ~ 12, to 日期必须大于 from 日期.
      */
     private void setYearMonthRange() {
-//        if (yearFrom < Util.MIN_YEAR || yearFrom > Util.MAX_YEAR
-//                || monthFrom < 1 || monthFrom > 12
-//                || yearTo < yearFrom
-//                || yearTo == yearFrom && monthTo < monthFrom) {
-//            return;
-//        }
-//
-        mCalendarData = CalendarEntity.getCalendarData(getContext(), mDoubleSelected);
+        mCalendarData = CalendarEntity.newCalendarData(getContext(), mDoubleSelected);
         mCalendarAdapter.setNewData(mCalendarData);
     }
 
@@ -158,8 +154,7 @@ public class RecyclerCalendarView extends FrameLayout {
      * 滚动到今天.
      */
     public void scrollToToday() {
-        int[] date = Util.getDate();
-        int position = Util.getPosition(mCalendarData, date[0], date[1], date[2]);
+        int position = Util.getPosition(mCalendarData, mTodayDate);
         scrollToPosition(position);
     }
 
@@ -217,8 +212,7 @@ public class RecyclerCalendarView extends FrameLayout {
             setYearMonthRange();
 
             if (!mDoubleSelected) {
-                int[] date = Util.getDate();
-                setSelected(date[0], date[1], date[2], false);
+                setSelected(mTodayDate, false);
             }
         }
 
@@ -230,8 +224,8 @@ public class RecyclerCalendarView extends FrameLayout {
     /**
      * 设置单选日期并滚动到选中的 position.
      */
-    public void setSelected(int year, int month, int day) {
-        setSelected(year, month, day, true);
+    public void setSelected(int[] date) {
+        setSelected(date, true);
     }
 
     /**
@@ -240,12 +234,12 @@ public class RecyclerCalendarView extends FrameLayout {
      * @param scrollToPosition
      *         如果为 true 则滚动到选中的 position.
      */
-    public void setSelected(int year, int month, int day, boolean scrollToPosition) {
+    public void setSelected(int[] date, boolean scrollToPosition) {
         setDoubleSelected(false);
 
-        int position = Util.getPosition(mCalendarData, year, month, day);
+        int position = Util.getPosition(mCalendarData, date);
 
-        setPositionSelected(position, CalendarEntity.SELECTED_SELECTED);
+        setPositionSelected(position, CalendarEntity.SELECTED_TYPE_SELECTED);
         mSingleSelectedPosition = position;
 
         mCalendarAdapter.notifyDataSetChanged();
@@ -258,8 +252,8 @@ public class RecyclerCalendarView extends FrameLayout {
     /**
      * 设置双选日期并滚动到选中的开始 position.
      */
-    public void setSelected(int fromYear, int fromMonth, int fromDay, int toYear, int toMonth, int toDay) {
-        setSelected(fromYear, fromMonth, fromDay, toYear, toMonth, toDay, true);
+    public void setSelected(int[] dateFrom, int[] dateTo) {
+        setSelected(dateFrom, dateTo, true);
     }
 
     /**
@@ -268,16 +262,15 @@ public class RecyclerCalendarView extends FrameLayout {
      * @param scrollToPosition
      *         如果为 true 则滚动到选中的开始 position.
      */
-    public void setSelected(int fromYear, int fromMonth, int fromDay, int toYear, int toMonth, int toDay,
-            boolean scrollToPosition) {
+    public void setSelected(int[] dateFrom, int[] dateTo, boolean scrollToPosition) {
         setDoubleSelected(true);
 
-        int fromPosition = Util.getPosition(mCalendarData, fromYear, fromMonth, fromDay);
-        int toPosition = Util.getPosition(mCalendarData, toYear, toMonth, toDay);
+        int fromPosition = Util.getPosition(mCalendarData, dateFrom);
+        int toPosition = Util.getPosition(mCalendarData, dateTo);
 
         int selectedCount = 0;
         for (int i = fromPosition; i <= toPosition; i++) {
-            if (mCalendarAdapter.getItem(i).getItemType() == CalendarEntity.TYPE_DATE) {
+            if (mCalendarAdapter.getItem(i).getItemType() == CalendarEntity.ITEM_TYPE_DAY) {
                 ++selectedCount;
             }
         }
@@ -286,12 +279,12 @@ public class RecyclerCalendarView extends FrameLayout {
             return;
         }
 
-        setPositionSelected(fromPosition, CalendarEntity.SELECTED_SELECTED);
+        setPositionSelected(fromPosition, CalendarEntity.SELECTED_TYPE_SELECTED);
         mDoubleSelectedPositionA = fromPosition;
-        setPositionSelected(toPosition, CalendarEntity.SELECTED_SELECTED);
+        setPositionSelected(toPosition, CalendarEntity.SELECTED_TYPE_SELECTED);
         mDoubleSelectedPositionB = toPosition;
         for (int i = fromPosition + 1; i < toPosition; i++) {
-            setPositionSelected(i, CalendarEntity.SELECTED_RANGED);
+            setPositionSelected(i, CalendarEntity.SELECTED_TYPE_RANGED);
         }
 
         mCalendarAdapter.notifyDataSetChanged();
@@ -306,24 +299,24 @@ public class RecyclerCalendarView extends FrameLayout {
      */
     public void clearSelected() {
         if (mSingleSelectedPosition != -1) {
-            setPositionSelected(mSingleSelectedPosition, CalendarEntity.SELECTED_UNSELECTED);
+            setPositionSelected(mSingleSelectedPosition, CalendarEntity.SELECTED_TYPE_UNSELECTED);
             mSingleSelectedPosition = -1;
         }
         if (mDoubleSelectedPositionA != -1 && mDoubleSelectedPositionB != -1) {
             int fromPosition = Math.min(mDoubleSelectedPositionA, mDoubleSelectedPositionB);
             int toPosition = Math.max(mDoubleSelectedPositionA, mDoubleSelectedPositionB);
             for (int i = fromPosition; i <= toPosition; i++) {
-                setPositionSelected(i, CalendarEntity.SELECTED_UNSELECTED);
+                setPositionSelected(i, CalendarEntity.SELECTED_TYPE_UNSELECTED);
             }
             mDoubleSelectedPositionA = -1;
             mDoubleSelectedPositionB = -1;
         } else {
             if (mDoubleSelectedPositionA != -1) {
-                setPositionSelected(mDoubleSelectedPositionA, CalendarEntity.SELECTED_UNSELECTED);
+                setPositionSelected(mDoubleSelectedPositionA, CalendarEntity.SELECTED_TYPE_UNSELECTED);
                 mDoubleSelectedPositionA = -1;
             }
             if (mDoubleSelectedPositionB != -1) {
-                setPositionSelected(mDoubleSelectedPositionB, CalendarEntity.SELECTED_UNSELECTED);
+                setPositionSelected(mDoubleSelectedPositionB, CalendarEntity.SELECTED_TYPE_UNSELECTED);
                 mDoubleSelectedPositionB = -1;
             }
         }
@@ -339,90 +332,39 @@ public class RecyclerCalendarView extends FrameLayout {
         public CalendarAdapter() {
             super(null);
 
-            addItemType(CalendarEntity.TYPE_YEAR_MONTH, R.layout.item_year_month);
-            addItemType(CalendarEntity.TYPE_DATE, R.layout.item_date);
-            addItemType(CalendarEntity.TYPE_EMPTY_DAY, R.layout.item_empty_day);
-            addItemType(CalendarEntity.TYPE_DIVIDER, R.layout.item_divider);
+            addItemType(CalendarEntity.ITEM_TYPE_MONTH, R.layout.item_year_month);
+            addItemType(CalendarEntity.ITEM_TYPE_DAY, R.layout.item_date);
+            addItemType(CalendarEntity.ITEM_TYPE_EMPTY_DAY, R.layout.item_empty_day);
+            addItemType(CalendarEntity.ITEM_TYPE_DIVIDER, R.layout.item_divider);
         }
 
         @Override
         protected void convert(final BaseViewHolder helper, final CalendarEntity item) {
             switch (helper.getItemViewType()) {
-                case CalendarEntity.TYPE_YEAR_MONTH: {
-                    helper.setText(R.id.year_month, item.yearMonthString);
+                case CalendarEntity.ITEM_TYPE_MONTH: {
+                    helper.setText(R.id.year_month, item.monthString);
 
                     break;
                 }
-                case CalendarEntity.TYPE_DATE: {
-                    final boolean dateEnable = mDoubleSelected ? item.isPresent : (item.isPresent || item.isSpecial);
+                case CalendarEntity.ITEM_TYPE_DAY: {
+                    helper.setText(R.id.day, item.dayString);
+                    helper.setText(R.id.special, item.specialString);
 
-                    helper.getView(R.id.root).setEnabled(dateEnable);
+                    helper.setTextColor(R.id.day, getResources().getColor(item.getTextColor()));
+                    helper.setTextColor(R.id.special, getResources().getColor(item.getTextColor()));
 
-                    if (dateEnable) {
-                        switch (item.selected) {
-                            case CalendarEntity.SELECTED_UNSELECTED: {
-                                helper.setBackgroundColor(R.id.root,
-                                        getResources().getColor(R.color.unselected_background));
-                                if (item.isToday) {
-                                    helper.setTextColor(R.id.day,
-                                            getResources().getColor(R.color.unselected_today_text));
-                                    helper.setTextColor(R.id.special,
-                                            getResources().getColor(R.color.unselected_today_text));
-                                } else if (item.isSpecial) {
-                                    helper.setTextColor(R.id.day,
-                                            getResources().getColor(R.color.unselected_special_text));
-                                    helper.setTextColor(R.id.special,
-                                            getResources().getColor(R.color.unselected_special_text));
-                                } else if (item.isFestival) {
-                                    helper.setTextColor(R.id.day,
-                                            getResources().getColor(R.color.unselected_festival_text));
-                                    helper.setTextColor(R.id.special,
-                                            getResources().getColor(R.color.unselected_festival_text));
-                                } else if (item.isWeekend) {
-                                    helper.setTextColor(R.id.day,
-                                            getResources().getColor(R.color.unselected_weekend_text));
-                                    helper.setTextColor(R.id.special,
-                                            getResources().getColor(R.color.unselected_weekend_text));
-                                } else {
-                                    helper.setTextColor(R.id.day, getResources().getColor(R.color.unselected_text));
-                                    helper.setTextColor(R.id.special,
-                                            getResources().getColor(R.color.unselected_text));
-                                }
-                                break;
-                            }
-                            case CalendarEntity.SELECTED_SELECTED: {
-                                helper.setBackgroundColor(R.id.root,
-                                        getResources().getColor(R.color.selected_background));
-                                helper.setTextColor(R.id.day, getResources().getColor(R.color.selected_text));
-                                helper.setTextColor(R.id.special, getResources().getColor(R.color.selected_text));
-                                break;
-                            }
-                            case CalendarEntity.SELECTED_RANGED: {
-                                helper.setBackgroundColor(R.id.root,
-                                        getResources().getColor(R.color.ranged_background));
-                                helper.setTextColor(R.id.day, getResources().getColor(R.color.selected_text));
-                                helper.setTextColor(R.id.special, getResources().getColor(R.color.selected_text));
-                                break;
-                            }
-                        }
-                    } else {
-                        helper.setBackgroundColor(R.id.root, getResources().getColor(R.color.unselected_background));
-                        helper.setTextColor(R.id.day, getResources().getColor(R.color.disabled_text));
-                        helper.setTextColor(R.id.special, getResources().getColor(R.color.disabled_text));
-                    }
+                    helper.setBackgroundColor(R.id.root, getResources().getColor(item.getBackgroundColor()));
 
-                    helper.getView(R.id.root).setOnClickListener(new OnClickListener() {
+                    View rootView = helper.getView(R.id.root);
+                    rootView.setEnabled(item.isEnabled);
+                    rootView.setOnClickListener(new OnClickListener() {
                         @Override
                         public void onClick(View v) {
-                            if (dateEnable) {
-                                clickDate(helper.getLayoutPosition(), item.year, item.month, item.day);
+                            if (item.isEnabled) {
+                                onDayClick(helper.getLayoutPosition(), item.year, item.month, item.day);
                             }
                         }
                     });
-
-                    helper.setText(R.id.day, item.dayString);
-                    helper.setText(R.id.special, dateEnable && !mDoubleSelected && item.isSpecial
-                            ? Util.SPECIAL_STRING : "");
 
                     break;
                 }
@@ -432,25 +374,25 @@ public class RecyclerCalendarView extends FrameLayout {
         /**
          * 点击某日期.
          */
-        private void clickDate(int position, int year, int month, int day) {
+        private void onDayClick(int position, int year, int month, int day) {
             if (mDoubleSelected) {
                 // 双选.
                 if (mDoubleSelectedPositionA == -1) {
                     // 两个都未选中.
                     if (mDoubleSelectedPositionB != -1) {
                         // 非正常情况, 容错代码.
-                        setPositionSelected(mDoubleSelectedPositionB, CalendarEntity.SELECTED_UNSELECTED);
+                        setPositionSelected(mDoubleSelectedPositionB, CalendarEntity.SELECTED_TYPE_UNSELECTED);
                         mDoubleSelectedPositionB = -1;
                     }
                     // 要选中第一个.
-                    setPositionSelected(position, CalendarEntity.SELECTED_SELECTED);
+                    setPositionSelected(position, CalendarEntity.SELECTED_TYPE_SELECTED);
                     mDoubleSelectedPositionA = position;
                     onDoubleFirstSelected(year, month, day);
                 } else if (mDoubleSelectedPositionB == -1) {
                     // 已选中第一个.
                     if (position == mDoubleSelectedPositionA) {
                         // 要取消选中第一个.
-                        setPositionSelected(position, CalendarEntity.SELECTED_UNSELECTED);
+                        setPositionSelected(position, CalendarEntity.SELECTED_TYPE_UNSELECTED);
                         mDoubleSelectedPositionA = -1;
                         onDoubleFirstUnselected(year, month, day);
                     } else {
@@ -460,23 +402,23 @@ public class RecyclerCalendarView extends FrameLayout {
 
                         int selectedCount = 0;
                         for (int i = fromPosition; i <= toPosition; i++) {
-                            if (mCalendarAdapter.getItem(i).getItemType() == CalendarEntity.TYPE_DATE) {
+                            if (mCalendarAdapter.getItem(i).getItemType() == CalendarEntity.ITEM_TYPE_DAY) {
                                 ++selectedCount;
                             }
                         }
 
                         if (selectedCount <= mMaxDoubleSelectedCount) {
-                            setPositionSelected(position, CalendarEntity.SELECTED_SELECTED);
+                            setPositionSelected(position, CalendarEntity.SELECTED_TYPE_SELECTED);
                             mDoubleSelectedPositionB = position;
 
                             for (int i = fromPosition + 1; i < toPosition; i++) {
-                                setPositionSelected(i, CalendarEntity.SELECTED_RANGED);
+                                setPositionSelected(i, CalendarEntity.SELECTED_TYPE_RANGED);
                             }
                             CalendarEntity fromCalendarEntity = mCalendarData.get(fromPosition);
                             CalendarEntity toCalendarEntity = mCalendarData.get(toPosition);
-                            onDoubleSelected(fromCalendarEntity.year, fromCalendarEntity.month, fromCalendarEntity.day,
-                                    toCalendarEntity.year, toCalendarEntity.month, toCalendarEntity.day,
-                                    selectedCount);
+                            onDoubleSelected(fromCalendarEntity.year, fromCalendarEntity.month,
+                                    fromCalendarEntity.day, toCalendarEntity.year,
+                                    toCalendarEntity.month, toCalendarEntity.day, selectedCount);
                         } else {
                             onExceedMaxDoubleSelectedCount(selectedCount);
                         }
@@ -486,10 +428,10 @@ public class RecyclerCalendarView extends FrameLayout {
                     int fromPosition = Math.min(mDoubleSelectedPositionA, mDoubleSelectedPositionB);
                     int toPosition = Math.max(mDoubleSelectedPositionA, mDoubleSelectedPositionB);
                     for (int i = fromPosition; i <= toPosition; i++) {
-                        setPositionSelected(i, CalendarEntity.SELECTED_UNSELECTED);
+                        setPositionSelected(i, CalendarEntity.SELECTED_TYPE_UNSELECTED);
                     }
                     mDoubleSelectedPositionB = -1;
-                    setPositionSelected(position, CalendarEntity.SELECTED_SELECTED);
+                    setPositionSelected(position, CalendarEntity.SELECTED_TYPE_SELECTED);
                     mDoubleSelectedPositionA = position;
                     onDoubleFirstSelected(year, month, day);
                 }
@@ -497,9 +439,9 @@ public class RecyclerCalendarView extends FrameLayout {
                 if (mSingleSelectedPosition != position) {
                     // 要选中另一个.
                     if (mSingleSelectedPosition != -1) {
-                        setPositionSelected(mSingleSelectedPosition, CalendarEntity.SELECTED_UNSELECTED);
+                        setPositionSelected(mSingleSelectedPosition, CalendarEntity.SELECTED_TYPE_UNSELECTED);
                     }
-                    setPositionSelected(position, CalendarEntity.SELECTED_SELECTED);
+                    setPositionSelected(position, CalendarEntity.SELECTED_TYPE_SELECTED);
                     mSingleSelectedPosition = position;
                 }
 
@@ -513,13 +455,13 @@ public class RecyclerCalendarView extends FrameLayout {
         public void onAttachedToRecyclerView(RecyclerView recyclerView) {
             super.onAttachedToRecyclerView(recyclerView);
 
-            Util.fullSpan(recyclerView, this, CalendarEntity.TYPE_YEAR_MONTH);
-            Util.fullSpan(recyclerView, this, CalendarEntity.TYPE_DIVIDER);
+            Util.fullSpan(recyclerView, this, CalendarEntity.ITEM_TYPE_MONTH);
+            Util.fullSpan(recyclerView, this, CalendarEntity.ITEM_TYPE_DIVIDER);
         }
 
         @Override
         public int getPinnedHeaderState(int position) {
-            return getItem(position).isLastSundayOfYearMonth
+            return getItem(position).isLastSundayOfMonth
                     ? PinnedHeaderRecyclerView.PinnedHeaderAdapter.STATE_PUSHABLE
                     : PinnedHeaderRecyclerView.PinnedHeaderAdapter.STATE_VISIBLE;
         }
@@ -527,9 +469,9 @@ public class RecyclerCalendarView extends FrameLayout {
         @Override
         public void configurePinnedHeader(View pinnedHeaderView, int position) {
             int itemType = getItemViewType(position);
-            if (itemType == CalendarEntity.TYPE_YEAR_MONTH || itemType == CalendarEntity.TYPE_DATE) {
+            if (itemType == CalendarEntity.ITEM_TYPE_MONTH || itemType == CalendarEntity.ITEM_TYPE_DAY) {
                 TextView yearMonthTextView = (TextView) pinnedHeaderView.findViewById(R.id.year_month);
-                yearMonthTextView.setText(getItem(position).yearMonthString);
+                yearMonthTextView.setText(getItem(position).monthString);
             }
         }
     }
@@ -539,8 +481,8 @@ public class RecyclerCalendarView extends FrameLayout {
      */
     private void setPositionSelected(int position, int selected) {
         CalendarEntity calendarEntity = mCalendarData.get(position);
-        if (calendarEntity.getItemType() == CalendarEntity.TYPE_DATE) {
-            calendarEntity.selected = selected;
+        if (calendarEntity.getItemType() == CalendarEntity.ITEM_TYPE_DAY) {
+            calendarEntity.selectedType = selected;
         }
     }
 

@@ -15,7 +15,6 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -23,149 +22,197 @@ import java.util.Map;
  */
 final class CalendarEntity implements MultiItemEntity {
     /**
-     * 默认开始年份.
+     * 返回一个日历数据.
      */
-    public static final int YEAR_FROM = 2011;
-    /**
-     * 默认开始月份.
-     */
-    public static final int MONTH_FROM = 1;
-    /**
-     * 默认结束年份.
-     */
-    public static final int YEAR_TO;
-    /**
-     * 默认结束月份.
-     */
-    public static final int MONTH_TO;
-
-    static {
-        int[] date = Util.getDate();
-
-        YEAR_TO = date[0];
-        MONTH_TO = date[1];
-    }
-
-    /**
-     * 返回日历数据.
-     */
-    public static List<CalendarEntity> getCalendarData(Context context, boolean doubleSelected) {
-        if (doubleSelected) {
-            return getCalendarData(context, YEAR_FROM, MONTH_FROM, YEAR_TO, MONTH_TO);
-        }
-
-        int[] todayDate = Util.getDate();
-        int[] toDate = Util.addDate(todayDate[0], todayDate[1], todayDate[2], Util.SPECIAL_DAYS);
-
-        int yearTo = toDate[0];
-        int monthTo = toDate[1];
-
-        return getCalendarData(context, YEAR_FROM, MONTH_FROM, yearTo, monthTo);
-    }
-
-    /**
-     * 返回日历数据.
-     */
-    private static List<CalendarEntity> getCalendarData(Context context, int yearFrom, int monthFrom, int yearTo,
-            int monthTo) {
+    public static List<CalendarEntity> newCalendarData(Context context, boolean doubleSelected) {
         List<CalendarEntity> calendarData = new ArrayList<>();
 
-        Map<Integer, Map<Integer, Map<Integer, String>>> festivals = getFestivals(context);
+        int[] todayDate = Util.getTodayDate();
+        int[] specialDateBefore = Util.getDateFromToday(doubleSelected ? 0 : Util.SPECIAL_DAYS);
 
-        int week = Util.getWeekOfFirstDayOfYearMonth(yearFrom, monthFrom);
-        int weekOfFirstDayOfYearMonth = week;
+        int yearFrom = Util.YEAR_FROM;
+        int monthFrom = Util.MONTH_FROM;
+        int yearTo = specialDateBefore[0];
+        int monthTo = specialDateBefore[1];
+
+        Map<int[], String> festivals = getFestivals(context);
+
+        int week = Util.getWeekOfFirstDayOfMonth(yearFrom, monthFrom);
+        int weekOfFirstDayOfMonth = week;
+
         for (int year = yearFrom; year <= yearTo; year++) {
             for (int month = 1; month <= 12; month++) {
                 if (year == yearFrom && month < monthFrom || year == yearTo && month > monthTo) {
                     continue;
                 }
 
-                CalendarEntity yearMonthCalendarEntity = new CalendarEntity(year, month);
-                calendarData.add(yearMonthCalendarEntity);
+                createMonthCalendarEntity(calendarData, context, year, month);
 
-                for (int disabledDay = 0; disabledDay < weekOfFirstDayOfYearMonth; disabledDay++) {
-                    CalendarEntity emptyDayCalendarEntity = new CalendarEntity(TYPE_EMPTY_DAY);
-                    calendarData.add(emptyDayCalendarEntity);
+                for (int emptyDay = 0; emptyDay < weekOfFirstDayOfMonth; emptyDay++) {
+                    createEmptyDayCalendarEntity(calendarData);
                 }
 
-                int daysOfYearMonth = Util.getDaysOfYearMonth(year, month);
-                int lastSundayOfYearMonth = (daysOfYearMonth + weekOfFirstDayOfYearMonth - 1) / 7 * 7 -
-                        weekOfFirstDayOfYearMonth + 1;
-                for (int day = 1; day <= daysOfYearMonth; day++) {
-                    boolean isLastSundayOfYearMonth = day == lastSundayOfYearMonth;
+                int daysOfMonth = Util.getDaysOfMonth(year, month);
+                int lastSundayOfMonth = Util.getLastSundayOfMonth(daysOfMonth, weekOfFirstDayOfMonth);
 
-                    String festival = "";
-                    if (festivals.containsKey(year)
-                            && festivals.get(year).containsKey(month)
-                            && festivals.get(year).get(month).containsKey(day)) {
-                        festival = festivals.get(year).get(month).get(day);
-                    }
+                for (int day = 1; day <= daysOfMonth; day++) {
+                    createDayCalendarEntity(calendarData, context, year, month, day, todayDate, specialDateBefore,
+                            festivals, week, lastSundayOfMonth);
 
-                    CalendarEntity dateCalendarEntity = new CalendarEntity(year, month, day, week, festival,
-                            isLastSundayOfYearMonth);
-                    calendarData.add(dateCalendarEntity);
-
-                    week = (week + 1) % 7;
+                    week = Util.getWeek(week, 1);
                 }
 
-                weekOfFirstDayOfYearMonth = (weekOfFirstDayOfYearMonth + daysOfYearMonth) % 7;
+                weekOfFirstDayOfMonth = Util.getWeek(weekOfFirstDayOfMonth, daysOfMonth);
             }
         }
 
-        CalendarEntity dividerCalendarEntity = new CalendarEntity(TYPE_DIVIDER);
-        calendarData.add(dividerCalendarEntity);
+        createDividerCalendarEntity(calendarData);
 
         return calendarData;
     }
 
     /**
-     * 返回节日.
+     * 返回一个月类型的日历实体对象.
      */
-    private static Map<Integer, Map<Integer, Map<Integer, String>>> getFestivals(Context context) {
-        Map<Integer, Map<Integer, Map<Integer, String>>> festivals = new ArrayMap<>();
+    private static void createMonthCalendarEntity(List<CalendarEntity> calendarData, Context context, int year,
+            int month) {
+        int itemType = ITEM_TYPE_MONTH;
 
-        try {
-            JSONObject rootJsonObject = new JSONObject(getFestivalJsonString(context));
-            JSONObject festivalJsonObject = rootJsonObject.getJSONObject("festival");
-            Iterator<String> yearKeys = festivalJsonObject.keys();
-            while (yearKeys.hasNext()) {
-                String yearKey = yearKeys.next();
-                JSONObject yearJsonObject = festivalJsonObject.getJSONObject(yearKey);
-                Iterator<String> monthKeys = yearJsonObject.keys();
+        int day = 0;
 
-                Map<Integer, Map<Integer, String>> monthMap = new ArrayMap<>();
-                while (monthKeys.hasNext()) {
-                    String monthKey = monthKeys.next();
-                    JSONObject monthJsonObject = yearJsonObject.getJSONObject(monthKey);
-                    Iterator<String> dayKeys = monthJsonObject.keys();
+        String special = null;
+        String festival = null;
 
-                    Map<Integer, String> dayMap = new ArrayMap<>();
-                    while (dayKeys.hasNext()) {
-                        String dayKey = dayKeys.next();
-                        String festival = monthJsonObject.getString(dayKey);
+        int week = -1;
 
-                        int day = Integer.parseInt(dayKey);
-                        dayMap.put(day, festival);
-                    }
+        boolean isToday = false;
+        boolean isPresent = false;
+        boolean isSpecial = false;
+        boolean isEnabled = false;
+        boolean isFestival = false;
+        boolean isWeekend = false;
 
-                    int month = Integer.parseInt(monthKey);
-                    monthMap.put(month, dayMap);
-                }
+        boolean isLastSundayOfMonth = false;
 
-                int year = Integer.parseInt(yearKey);
-                festivals.put(year, monthMap);
-            }
-        } catch (NumberFormatException | JSONException e) {
-            e.printStackTrace();
-        }
+        String monthString = context.getString(R.string.month_string, year, month);
+        String dayString = null;
+        String specialString = null;
 
-        return festivals;
+        CalendarEntity monthCalendarEntity = new CalendarEntity(itemType, year, month, day, special, festival, week,
+                isToday, isPresent, isSpecial, isEnabled, isFestival, isWeekend, isLastSundayOfMonth, monthString,
+                dayString, specialString);
+        calendarData.add(monthCalendarEntity);
     }
 
     /**
-     * 读取 festival.json 文件为字符串.
+     * 返回一个日类型的日历实体对象.
      */
-    private static String getFestivalJsonString(Context context) {
+    private static void createDayCalendarEntity(List<CalendarEntity> calendarData, Context context, int year,
+            int month, int day, int[] todayDate, int[] specialDateBefore, Map<int[], String> festivals, int week,
+            int lastSundayOfMonth) {
+        int[] date = new int[]{year, month, day};
+
+        int itemType = ITEM_TYPE_DAY;
+
+        String special = context.getString(R.string.special);
+        String festival = null;
+        for (int[] key : festivals.keySet()) {
+            if (Util.isDateEqual(key, date)) {
+                festival = festivals.get(key);
+            }
+        }
+
+        boolean isToday = Util.isDateEqual(date, todayDate);
+        boolean isPresent = Util.isDateBefore(date, todayDate, true);
+        boolean isSpecial = Util.isDateBetween(date, todayDate, specialDateBefore, false, true);
+        boolean isEnabled = isPresent || isSpecial;
+        boolean isFestival = !TextUtils.isEmpty(festival);
+        boolean isWeekend = week == 0 || week == 6;
+
+        boolean isLastSundayOfMonth = day == lastSundayOfMonth;
+
+        String monthString = context.getString(R.string.month_string, year, month);
+        String dayString = isToday ? context.getString(R.string.today) : isFestival ? festival : String.valueOf(day);
+        String specialString = isSpecial ? TextUtils.isEmpty(special) ? "" : special : null;
+
+        CalendarEntity dayCalendarEntity = new CalendarEntity(itemType, year, month, day, special, festival, week,
+                isToday, isPresent, isSpecial, isEnabled, isFestival, isWeekend, isLastSundayOfMonth, monthString,
+                dayString, specialString);
+        calendarData.add(dayCalendarEntity);
+    }
+
+    /**
+     * 返回一个空白日类型的日历实体对象.
+     */
+    private static void createEmptyDayCalendarEntity(List<CalendarEntity> calendarData) {
+        int itemType = ITEM_TYPE_EMPTY_DAY;
+
+        int year = 0;
+        int month = 0;
+        int day = 0;
+
+        String special = null;
+        String festival = null;
+
+        int week = -1;
+
+        boolean isToday = false;
+        boolean isPresent = false;
+        boolean isSpecial = false;
+        boolean isEnabled = false;
+        boolean isFestival = false;
+        boolean isWeekend = false;
+
+        boolean isLastSundayOfMonth = false;
+
+        String monthString = null;
+        String dayString = null;
+        String specialString = null;
+
+        CalendarEntity emptyDayCalendarEntity =  new CalendarEntity(itemType, year, month, day, special, festival,
+                week, isToday, isPresent, isSpecial, isEnabled, isFestival, isWeekend, isLastSundayOfMonth,
+                monthString, dayString, specialString);
+        calendarData.add(emptyDayCalendarEntity);
+    }
+
+    /**
+     * 返回一个分割线类型的日历实体对象.
+     */
+    private static void createDividerCalendarEntity(List<CalendarEntity> calendarData) {
+        int itemType = ITEM_TYPE_DIVIDER;
+
+        int year = 0;
+        int month = 0;
+        int day = 0;
+
+        String special = null;
+        String festival = null;
+
+        int week = -1;
+
+        boolean isToday = false;
+        boolean isPresent = false;
+        boolean isSpecial = false;
+        boolean isEnabled = false;
+        boolean isFestival = false;
+        boolean isWeekend = false;
+
+        boolean isLastSundayOfMonth = false;
+
+        String monthString = null;
+        String dayString = null;
+        String specialString = null;
+
+        CalendarEntity dividerCalendarEntity = new CalendarEntity(itemType, year, month, day, special, festival, week,
+                isToday, isPresent, isSpecial, isEnabled, isFestival, isWeekend, isLastSundayOfMonth, monthString,
+                dayString, specialString);
+        calendarData.add(dividerCalendarEntity);
+    }
+
+    /**
+     * 读取 festival.json 文件并返回节日 map, key 为日期, value 为节日.
+     */
+    private static Map<int[], String> getFestivals(Context context) {
         InputStream is = context.getResources().openRawResource(R.raw.festival);
         BufferedReader br;
         StringBuilder stringBuilder = new StringBuilder();
@@ -178,64 +225,72 @@ final class CalendarEntity implements MultiItemEntity {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return stringBuilder.toString();
+        String rootJsonString = stringBuilder.toString();
+
+        String rootKey = context.getString(R.string.festival_root_key);
+
+        Map<int[], String> festivals = new ArrayMap<>();
+
+        try {
+            JSONObject rootJsonObject = new JSONObject(rootJsonString);
+            JSONObject festivalJsonObject = rootJsonObject.getJSONObject(rootKey);
+            Iterator<String> yearKeys = festivalJsonObject.keys();
+            while (yearKeys.hasNext()) {
+                String yearKey = yearKeys.next();
+                int year = Integer.parseInt(yearKey);
+                JSONObject yearJsonObject = festivalJsonObject.getJSONObject(yearKey);
+                Iterator<String> monthKeys = yearJsonObject.keys();
+                while (monthKeys.hasNext()) {
+                    String monthKey = monthKeys.next();
+                    int month = Integer.parseInt(monthKey);
+                    JSONObject monthJsonObject = yearJsonObject.getJSONObject(monthKey);
+                    Iterator<String> dayKeys = monthJsonObject.keys();
+                    while (dayKeys.hasNext()) {
+                        String dayKey = dayKeys.next();
+                        int day = Integer.parseInt(dayKey);
+                        String festival = monthJsonObject.getString(dayKey);
+                        festivals.put(new int[]{year, month, day}, festival);
+                    }
+                }
+            }
+        } catch (JSONException | NumberFormatException e) {
+            e.printStackTrace();
+        }
+
+        return festivals;
     }
 
     //*****************************************************************************************************************
 
     /**
-     * 年月类型.
+     * 月类型.
      */
-    public static final int TYPE_YEAR_MONTH = 0;
+    public static final int ITEM_TYPE_MONTH = 0;
     /**
-     * 日期类型.
+     * 日类型.
      */
-    public static final int TYPE_DATE = 1;
+    public static final int ITEM_TYPE_DAY = 1;
     /**
-     * 空白日期类型.
+     * 空白日类型.
      */
-    public static final int TYPE_EMPTY_DAY = 2;
+    public static final int ITEM_TYPE_EMPTY_DAY = 2;
     /**
-     * 分隔符类型.
+     * 分隔线类型.
      */
-    public static final int TYPE_DIVIDER = 3;
+    public static final int ITEM_TYPE_DIVIDER = 3;
 
     /**
-     * 非日期类型的日.
+     * 未选中的.
      */
-    private static final int DAY_NOT_DATE = -1;
-
-    public final int year;
-    public final int month;
-    public final int day;
-
-    public final int week;
-
+    public static final int SELECTED_TYPE_UNSELECTED = 0;
     /**
-     * 节日.
+     * 已选中的.
      */
-    public final String festival;
-
+    public static final int SELECTED_TYPE_SELECTED = 1;
     /**
-     * 是否为今天.
+     * 选中范围的.
      */
-    public final boolean isToday;
-    /**
-     * 是否为周末.
-     */
-    public final boolean isWeekend;
-    /**
-     * 是否为节日.
-     */
-    public final boolean isFestival;
-    /**
-     * 是否为现在的日期.
-     */
-    public final boolean isPresent;
-    /**
-     * 是否为特殊的日期.
-     */
-    public final boolean isSpecial;
+    public static final int SELECTED_TYPE_RANGED = 2;
 
     /**
      * 类型.
@@ -243,123 +298,176 @@ final class CalendarEntity implements MultiItemEntity {
     public final int itemType;
 
     /**
-     * 是否为当前年月的最后一个星期日.
+     * 年.
      */
-    public final boolean isLastSundayOfYearMonth;
+    public final int year;
+    /**
+     * 月.
+     */
+    public final int month;
+    /**
+     * 日.
+     */
+    public final int day;
 
     /**
-     * 年月字符串.
+     * 特殊.
      */
-    public final String yearMonthString;
+    public final String special;
+    /**
+     * 节日.
+     */
+    public final String festival;
+
+    /**
+     * 星期.
+     */
+    public final int week;
+
+    /**
+     * 是否为今天.
+     */
+    public final boolean isToday;
+    /**
+     * 是否为现在.
+     */
+    public final boolean isPresent;
+    /**
+     * 是否为特殊.
+     */
+    public final boolean isSpecial;
+    /**
+     * 是否为可用.
+     */
+    public final boolean isEnabled;
+    /**
+     * 是否为节日.
+     */
+    public final boolean isFestival;
+    /**
+     * 是否为周末.
+     */
+    public final boolean isWeekend;
+
+    /**
+     * 是否为当前月的最后一个星期日.
+     */
+    public final boolean isLastSundayOfMonth;
+
+    /**
+     * 月字符串.
+     */
+    public final String monthString;
     /**
      * 日字符串.
      */
     public final String dayString;
-
     /**
-     * 未选中的.
+     * 特殊字符串.
      */
-    public static final int SELECTED_UNSELECTED = 0;
-    /**
-     * 已选中的.
-     */
-    public static final int SELECTED_SELECTED = 1;
-    /**
-     * 选中范围的.
-     */
-    public static final int SELECTED_RANGED = 2;
+    public final String specialString;
 
     /**
      * 选中类型.
      */
-    public int selected;
+    public int selectedType;
 
-    /**
-     * 创建一个年月类型的日历实体.
-     */
-    private CalendarEntity(int year, int month) {
-        this.year = year;
-        this.month = month;
-        day = DAY_NOT_DATE;
-
-        week = DAY_NOT_DATE;
-
-        festival = "";
-
-        isToday = false;
-        isWeekend = false;
-        isFestival = false;
-        isPresent = false;
-        isSpecial = false;
-
-        itemType = TYPE_YEAR_MONTH;
-
-        isLastSundayOfYearMonth = false;
-
-        yearMonthString = String.format(Locale.getDefault(), "%d年%d月", this.year, this.month);
-        dayString = "";
-    }
-
-    /**
-     * 创建一个日期类型的日历实体.
-     */
-    private CalendarEntity(int year, int month, int day, int week, String festival, boolean isLastSundayOfYearMonth) {
+    private CalendarEntity(int itemType, int year, int month, int day, String special, String festival, int week,
+            boolean isToday, boolean isPresent, boolean isSpecial, boolean isEnabled, boolean isFestival,
+            boolean isWeekend, boolean isLastSundayOfMonth, String monthString, String dayString,
+            String specialString) {
+        this.itemType = itemType;
         this.year = year;
         this.month = month;
         this.day = day;
-
-        this.week = week;
-
+        this.special = special;
         this.festival = festival;
-
-        isToday = Util.isToday(this.year, this.month, this.day);
-        isWeekend = this.week == 0 || this.week == 6;
-        isFestival = !TextUtils.isEmpty(this.festival);
-        isPresent = !Util.isFuture(this.year, this.month, this.day);
-        isSpecial = Util.isFuture(this.year, this.month, this.day, Util.SPECIAL_DAYS);
-
-        itemType = this.day == DAY_NOT_DATE ? TYPE_YEAR_MONTH : TYPE_DATE;
-
-        this.isLastSundayOfYearMonth = isLastSundayOfYearMonth;
-
-        yearMonthString = String.format(Locale.getDefault(), "%d年%d月", this.year, this.month);
-        if (isToday) {
-            dayString = "今天";
-        } else if (isFestival) {
-            dayString = this.festival;
-        } else {
-            dayString = String.valueOf(this.day);
-        }
-    }
-
-    /**
-     * 创建一个月份占位符类型的日历实体.
-     */
-    private CalendarEntity(int placeHolderType) {
-        year = DAY_NOT_DATE;
-        month = DAY_NOT_DATE;
-        day = DAY_NOT_DATE;
-
-        week = DAY_NOT_DATE;
-
-        festival = "";
-
-        isToday = false;
-        isWeekend = false;
-        isFestival = false;
-        isPresent = false;
-        isSpecial = false;
-
-        itemType = placeHolderType;
-
-        isLastSundayOfYearMonth = false;
-
-        yearMonthString = "";
-        dayString = "";
+        this.week = week;
+        this.isToday = isToday;
+        this.isPresent = isPresent;
+        this.isSpecial = isSpecial;
+        this.isEnabled = isEnabled;
+        this.isFestival = isFestival;
+        this.isWeekend = isWeekend;
+        this.isLastSundayOfMonth = isLastSundayOfMonth;
+        this.monthString = monthString;
+        this.dayString = dayString;
+        this.specialString = specialString;
     }
 
     @Override
     public int getItemType() {
         return itemType;
+    }
+
+    /**
+     * 返回文字颜色.
+     */
+    public int getTextColor() {
+        // 非日类型.
+        if (itemType != ITEM_TYPE_DAY) {
+            return android.R.color.transparent;
+        }
+
+        // 不可用.
+        if (!isEnabled) {
+            return R.color.disabled_text;
+        }
+
+        // 选中的.
+        if (selectedType != SELECTED_TYPE_UNSELECTED) {
+            return R.color.selected_text;
+        }
+
+        // 今天.
+        if (isToday) {
+            return R.color.unselected_today_text;
+        }
+
+        // 特殊.
+        if (isSpecial) {
+            return R.color.unselected_special_text;
+        }
+
+        // 节日.
+        if (isFestival) {
+            return R.color.unselected_festival_text;
+        }
+
+        // 周末.
+        if (isWeekend) {
+            return R.color.unselected_weekend_text;
+        }
+
+        // 默认.
+        return R.color.unselected_text;
+    }
+
+    /**
+     * 返回背景颜色.
+     */
+    public int getBackgroundColor() {
+        // 非日类型.
+        if (itemType != ITEM_TYPE_DAY) {
+            return android.R.color.transparent;
+        }
+
+        // 不可用.
+        if (!isEnabled) {
+            return R.color.unselected_background;
+        }
+
+        // 选中类型.
+        switch (selectedType) {
+            case SELECTED_TYPE_SELECTED: {
+                return R.color.selected_background;
+            }
+            case SELECTED_TYPE_RANGED: {
+                return R.color.ranged_background;
+            }
+            default: {
+                return R.color.unselected_background;
+            }
+        }
     }
 }

@@ -35,6 +35,10 @@
     <string name="thursday">四</string>
     <string name="friday">五</string>
     <string name="saturday">六</string>
+    <string name="month_string">%1$d年%2$d月</string>
+    <string name="today">今天</string>
+    <string name="special">预售</string>
+    <string name="festival_root_key">festival</string>
 
     <style name="WeekTextView">
         <item name="android:layout_width">0dp</item>

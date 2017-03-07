@@ -11,110 +11,35 @@ import java.util.List;
  */
 final class Util {
     /**
+     * 默认开始年份.
+     */
+    public static final int YEAR_FROM = 2011;
+    /**
+     * 默认开始月份.
+     */
+    public static final int MONTH_FROM = 1;
+    /**
      * 默认最大双选数量.
      */
     public static final int MAX_DOUBLE_SELECTED_COUNT = 90;
-
     /**
      * 默认特殊日期天数.
      */
     public static final int SPECIAL_DAYS = 15;
-    /**
-     * 默认特殊日期字符串.
-     */
-    public static final String SPECIAL_STRING = "预售";
 
     /**
-     * 返回一个长度为 3 的数组分别表示今天的年月日.
+     * 返回指定日期在 calendarData 中的 position, 如果没找到则返回 -1.
      */
-    public static int[] getDate() {
-        int[] date = new int[3];
-
-        Calendar calendar = Calendar.getInstance();
-        date[0] = calendar.get(Calendar.YEAR);
-        date[1] = calendar.get(Calendar.MONTH) + 1;
-        date[2] = calendar.get(Calendar.DATE);
-
-        return date;
-    }
-
-    /**
-     * 日期计算.
-     *
-     * @param days
-     *         增加天数.
-     *
-     * @return 计算后的日期.
-     */
-    public static int[] addDate(int year, int month, int day, int days) {
-        Calendar calendar = Calendar.getInstance();
-        calendar.set(year, month, day);
-        calendar.add(Calendar.DATE, days);
-
-        int[] date = new int[3];
-        date[0] = calendar.get(Calendar.YEAR);
-        date[1] = calendar.get(Calendar.MONTH);
-        date[2] = calendar.get(Calendar.DATE);
-
-        return date;
-    }
-
-    /**
-     * 返回某日期是否为今天.
-     */
-    public static boolean isToday(int year, int month, int day) {
-        int[] date = getDate();
-        return year == date[0] && month == date[1] && day == date[2];
-    }
-
-    /**
-     * 返回某日期是否是未来日期.
-     */
-    public static boolean isFuture(int year, int month, int day) {
-        return isFuture(year, month, day, 0);
-    }
-
-    /**
-     * 返回某日期是否是未来日期, 并在一定天数及以内.
-     *
-     * @param within
-     *         天数范围.
-     */
-    public static boolean isFuture(int year, int month, int day, int within) {
-        int[] date = getDate();
-        int todayDaysFrom19700101 = getDaysFrom19700101(date[0], date[1], date[2]);
-        int futureDaysFrom19700101 = getDaysFrom19700101(year, month, day);
-
-        if (within <= 0) {
-            return futureDaysFrom19700101 > todayDaysFrom19700101;
-        } else {
-            return futureDaysFrom19700101 > todayDaysFrom19700101
-                    && futureDaysFrom19700101 <= todayDaysFrom19700101 + within;
-        }
-    }
-
-    /**
-     * 返回指定年月日的 position.
-     */
-    public static int getPosition(List<CalendarEntity> calendarData, int year, int month, int day) {
+    public static int getPosition(List<CalendarEntity> calendarData, int[] date) {
         for (int position = 0; position < calendarData.size(); position++) {
             CalendarEntity calendarEntity = calendarData.get(position);
-            if (calendarEntity.year == year && calendarEntity.month == month && calendarEntity.day == day) {
+            if (isDateEqual(new int[]{calendarEntity.year, calendarEntity.month, calendarEntity.day}, date)) {
                 return position;
             }
         }
 
         return -1;
     }
-
-    /**
-     * 最小年份.
-     */
-    public static final int MIN_YEAR = 1970;
-    /**
-     * 最大年份.
-     */
-    public static final int MAX_YEAR = 2037;
 
     /**
      * 平年月份天数.
@@ -129,7 +54,7 @@ final class Util {
     /**
      * 返回某年某月 1 日的星期.
      */
-    public static int getWeekOfFirstDayOfYearMonth(int year, int month) {
+    public static int getWeekOfFirstDayOfMonth(int year, int month) {
         return (getDaysFrom19700101(year, month, 1) + WEEK_OF_19700101) % 7;
     }
 
@@ -144,7 +69,7 @@ final class Util {
         }
 
         for (int i = 1; i < month; i++) {
-            days += getDaysOfYearMonth(year, i);
+            days += getDaysOfMonth(year, i);
         }
 
         days += day - 1;
@@ -162,7 +87,7 @@ final class Util {
     /**
      * 返回某年某月的天数.
      */
-    public static int getDaysOfYearMonth(int year, int month) {
+    public static int getDaysOfMonth(int year, int month) {
         return month == 2 && isLeapYear(year) ? 29 : DAYS_OF_MONTHS[month - 1];
     }
 
@@ -196,5 +121,53 @@ final class Util {
                 }
             });
         }
+    }
+
+    public static int[] getTodayDate() {
+        return getDateFromToday(0);
+    }
+
+    public static int[] getDateFromToday(int add) {
+        int[] todayDate = new int[3];
+
+        Calendar calendar = Calendar.getInstance();
+        calendar.add(Calendar.DATE, add);
+
+        todayDate[0] = calendar.get(Calendar.YEAR);
+        todayDate[1] = calendar.get(Calendar.MONTH) + 1;
+        todayDate[2] = calendar.get(Calendar.DATE);
+
+        return todayDate;
+    }
+
+    public static boolean isDateAfter(int[] thisDate, int[] date, boolean canEqual) {
+        return thisDate[0] > date[0]
+                || thisDate[0] == date[0] && thisDate[1] > date[1]
+                || thisDate[0] == date[0] && thisDate[1] == date[1]
+                && (canEqual ? thisDate[2] >= date[2] : thisDate[2] > date[2]);
+    }
+
+    public static boolean isDateBefore(int[] thisDate, int[] date, boolean canEqual) {
+        return thisDate[0] < date[0]
+                || thisDate[0] == date[0] && thisDate[1] < date[1]
+                || thisDate[0] == date[0] && thisDate[1] == date[1]
+                && (canEqual ? thisDate[2] <= date[2] : thisDate[2] < date[2]);
+    }
+
+    public static boolean isDateBetween(int[] thisDate, int[] dateAfter, int[] dateBefore, boolean canEqualAfter,
+            boolean canEqualBefore) {
+        return isDateAfter(thisDate, dateAfter, canEqualAfter) && isDateBefore(thisDate, dateBefore, canEqualBefore);
+    }
+
+    public static boolean isDateEqual(int[] thisDate, int[] date) {
+        return thisDate[0] == date[0] && thisDate[1] == date[1] && thisDate[2] == date[2];
+    }
+
+    public static int getLastSundayOfMonth(int daysOfMonth, int weekOfFirstDayOfMonth) {
+        return (daysOfMonth + weekOfFirstDayOfMonth - 1) / 7 * 7 - weekOfFirstDayOfMonth + 1;
+    }
+
+    public static int getWeek(int current, int add) {
+        return (current + add) % 7;
     }
 }
