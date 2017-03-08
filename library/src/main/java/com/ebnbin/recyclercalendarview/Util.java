@@ -1,6 +1,18 @@
 package com.ebnbin.recyclercalendarview;
 
+import android.content.Context;
+import android.support.v4.util.ArrayMap;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.Calendar;
+import java.util.Iterator;
+import java.util.Map;
 
 /**
  * 工具类.
@@ -140,5 +152,134 @@ final class Util {
      */
     public static int getLastSundayOfMonth(int daysOfMonth, int weekOfFirstDayOfMonth) {
         return (daysOfMonth + weekOfFirstDayOfMonth - 1) / 7 * 7 - weekOfFirstDayOfMonth + 1;
+    }
+
+    /**
+     * 返回日期字符串.
+     */
+    public static String getDateString(int[] date) {
+        return String.format(getInstance().format_date, date[0], date[1], date[2]);
+    }
+
+    //*****************************************************************************************************************
+    // Cache.
+
+    private static Util sInstance;
+
+    public static void init(Context context) {
+        if (sInstance == null) {
+            sInstance = new Util(context);
+        }
+    }
+
+    public static Util getInstance() {
+        return sInstance;
+    }
+
+    public final int transparent;
+    public final int background_day;
+    public final int background_selected;
+    public final int background_ranged;
+    public final int background_disabled;
+    public final int text_day;
+    public final int text_selected;
+    public final int text_today;
+    public final int text_special;
+    public final int text_festival;
+    public final int text_weekend;
+    public final int text_disabled;
+
+    public final int year_from;
+    public final int month_from;
+    public final int special_count;
+    public final int max_double_selected_count;
+
+    public final String special;
+    public final String today;
+    public final String format_month;
+    public final String format_date;
+    private final String key_festival;
+
+    public final Map<Integer, Map<Integer, Map<Integer, String>>> festivals;
+
+    private Util(Context context) {
+        transparent = context.getResources().getColor(R.color.transparent);
+        background_day = context.getResources().getColor(R.color.background_day);
+        background_selected = context.getResources().getColor(R.color.background_selected);
+        background_ranged = context.getResources().getColor(R.color.background_ranged);
+        background_disabled = context.getResources().getColor(R.color.background_disabled);
+        text_day = context.getResources().getColor(R.color.text_day);
+        text_selected = context.getResources().getColor(R.color.text_selected);
+        text_today = context.getResources().getColor(R.color.text_today);
+        text_special = context.getResources().getColor(R.color.text_special);
+        text_festival = context.getResources().getColor(R.color.text_festival);
+        text_weekend = context.getResources().getColor(R.color.text_weekend);
+        text_disabled = context.getResources().getColor(R.color.text_disabled);
+
+        year_from = context.getResources().getInteger(R.integer.year_from);
+        month_from = context.getResources().getInteger(R.integer.month_from);
+        special_count = context.getResources().getInteger(R.integer.special_count);
+        max_double_selected_count = context.getResources().getInteger(R.integer.max_double_selected_count);
+
+        special = context.getString(R.string.special);
+        today = context.getString(R.string.today);
+        format_month = context.getString(R.string.format_month);
+        format_date = context.getString(R.string.format_date);
+        key_festival = context.getString(R.string.key_festival);
+
+        festivals = getFestivals(context);
+    }
+
+    /**
+     * 读取 festival.json 文件并返回节日 map.
+     */
+    private Map<Integer, Map<Integer, Map<Integer, String>>> getFestivals(Context context) {
+        StringBuilder stringBuilder = new StringBuilder();
+        try {
+            InputStream is = context.getResources().openRawResource(R.raw.festival);
+            BufferedReader br;
+            br = new BufferedReader(new InputStreamReader(is));
+            String string;
+            while ((string = br.readLine()) != null) {
+                stringBuilder.append(string);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        String rootJsonString = stringBuilder.toString();
+
+        Map<Integer, Map<Integer, Map<Integer, String>>> festivals = new ArrayMap<>();
+
+        try {
+            JSONObject rootJsonObject = new JSONObject(rootJsonString);
+            JSONObject festivalJsonObject = rootJsonObject.getJSONObject(key_festival);
+            Iterator<String> yearKeys = festivalJsonObject.keys();
+            while (yearKeys.hasNext()) {
+                String yearKey = yearKeys.next();
+                int year = Integer.parseInt(yearKey);
+                Map<Integer, Map<Integer, String>> monthMap = new ArrayMap<>();
+                JSONObject yearJsonObject = festivalJsonObject.getJSONObject(yearKey);
+                Iterator<String> monthKeys = yearJsonObject.keys();
+                while (monthKeys.hasNext()) {
+                    String monthKey = monthKeys.next();
+                    int month = Integer.parseInt(monthKey);
+                    Map<Integer, String> dayMap = new ArrayMap<>();
+                    JSONObject monthJsonObject = yearJsonObject.getJSONObject(monthKey);
+                    Iterator<String> dayKeys = monthJsonObject.keys();
+                    while (dayKeys.hasNext()) {
+                        String dayKey = dayKeys.next();
+                        int day = Integer.parseInt(dayKey);
+                        String festival = monthJsonObject.getString(dayKey);
+                        dayMap.put(day, festival);
+                    }
+                    monthMap.put(month, dayMap);
+                }
+                festivals.put(year, monthMap);
+            }
+        } catch (JSONException | NumberFormatException e) {
+            e.printStackTrace();
+        }
+
+        return festivals;
     }
 }

@@ -14,23 +14,6 @@ import android.widget.Toast;
  */
 public class RecyclerCalendarView extends FrameLayout {
     /**
-     * 开始年.
-     */
-    private final int mYearFrom;
-    /**
-     * 结束年.
-     */
-    private final int mMonthFrom;
-    /**
-     * 特殊天数.
-     */
-    private final int mSpecialCount;
-    /**
-     * 最大双选天数.
-     */
-    private final int mMaxDoubleSelectedCount;
-
-    /**
      * 今天日期.
      */
     private int[] mTodayDate;
@@ -52,10 +35,7 @@ public class RecyclerCalendarView extends FrameLayout {
     public RecyclerCalendarView(@NonNull Context context, @Nullable AttributeSet attrs, @AttrRes int defStyleAttr) {
         super(context, attrs, defStyleAttr);
 
-        mYearFrom = getResources().getInteger(R.integer.year_from);
-        mMonthFrom = getResources().getInteger(R.integer.month_from);
-        mSpecialCount = getResources().getInteger(R.integer.special_count);
-        mMaxDoubleSelectedCount = getResources().getInteger(R.integer.max_double_selected_count);
+        Util.init(getContext());
 
         mTodayDate = Util.getTodayDate();
 
@@ -66,7 +46,7 @@ public class RecyclerCalendarView extends FrameLayout {
         mCalendarLayoutManager = new GridLayoutManager(getContext(), 7);
         mCalendarRecyclerView.setLayoutManager(mCalendarLayoutManager);
 
-        mCalendarAdapter = new CalendarAdapter(getContext(), mCalendarLayoutManager);
+        mCalendarAdapter = new CalendarAdapter(getContext());
         mCalendarAdapter.setOnDayClickListener(new CalendarAdapter.OnDayClickListener() {
             @Override
             void onDayClick(int position) {
@@ -141,8 +121,7 @@ public class RecyclerCalendarView extends FrameLayout {
         }
 
         if (mCalendarAdapter.getCalendarData().isEmpty()) {
-            mCalendarAdapter.setCalendarData(CalendarEntity.newCalendarData(getContext(), mDoubleSelectedMode,
-                    mTodayDate, mSpecialCount, mYearFrom, mMonthFrom));
+            mCalendarAdapter.setCalendarData(CalendarEntity.newCalendarData(mDoubleSelectedMode, mTodayDate));
         }
 
         resetSelected(notifyDataSetChanged);
@@ -192,7 +171,7 @@ public class RecyclerCalendarView extends FrameLayout {
                 } else {
                     // 要选中第二个.
                     int selectedCount = getPositionABSelectedCount(mSelectedPositionA, position);
-                    if (selectedCount <= mMaxDoubleSelectedCount) {
+                    if (selectedCount <= Util.getInstance().max_double_selected_count) {
                         selectPositionAB(mSelectedPositionA, position);
                         if (callback) {
                             onDoubleSelected(mSelectedPositionA, mSelectedPositionB, selectedCount);
@@ -412,7 +391,7 @@ public class RecyclerCalendarView extends FrameLayout {
      */
     private void onSingleSelected(int position) {
         CalendarEntity calendarEntity = mCalendarAdapter.getCalendarEntity(position);
-        Toast.makeText(getContext(), calendarEntity.dateString, Toast.LENGTH_SHORT).show();
+        Toast.makeText(getContext(), Util.getDateString(calendarEntity.date), Toast.LENGTH_SHORT).show();
     }
 
     /**
@@ -421,8 +400,8 @@ public class RecyclerCalendarView extends FrameLayout {
     private void onDoubleSelected(int positionFrom, int positionTo, int dayCount) {
         CalendarEntity calendarEntityFrom = mCalendarAdapter.getCalendarEntity(positionFrom);
         CalendarEntity calendarEntityTo = mCalendarAdapter.getCalendarEntity(positionTo);
-        Toast.makeText(getContext(), calendarEntityFrom.dateString + "~" + calendarEntityTo.dateString + "," + dayCount,
-                Toast.LENGTH_SHORT).show();
+        Toast.makeText(getContext(), Util.getDateString(calendarEntityFrom.date) + "~" +
+                Util.getDateString(calendarEntityTo.date) + "," + dayCount, Toast.LENGTH_SHORT).show();
     }
 
     /**
@@ -430,7 +409,7 @@ public class RecyclerCalendarView extends FrameLayout {
      */
     private void onDoubleFirstSelected(int position) {
         CalendarEntity calendarEntity = mCalendarAdapter.getCalendarEntity(position);
-        Toast.makeText(getContext(), "已选中:" + calendarEntity.dateString, Toast.LENGTH_SHORT).show();
+        Toast.makeText(getContext(), "已选中:" + Util.getDateString(calendarEntity.date), Toast.LENGTH_SHORT).show();
     }
 
     /**
@@ -438,7 +417,7 @@ public class RecyclerCalendarView extends FrameLayout {
      */
     private void onDoubleFirstUnselected(int position) {
         CalendarEntity calendarEntity = mCalendarAdapter.getCalendarEntity(position);
-        Toast.makeText(getContext(), "已取消:" + calendarEntity.dateString, Toast.LENGTH_SHORT).show();
+        Toast.makeText(getContext(), "已取消:" + Util.getDateString(calendarEntity.date), Toast.LENGTH_SHORT).show();
     }
 
     /**

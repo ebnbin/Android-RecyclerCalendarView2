@@ -1,15 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="background_calendar">#fff</color>
-    <color name="background_week">#eee</color>
-    <color name="background_month">#fff</color>
-    <color name="background_day">#fff</color>
+    <color name="transparent">#0000</color>
+    <color name="background_day">#0000</color>
     <color name="background_selected">#f00</color>
     <color name="background_ranged">#f88</color>
-    <color name="background_disabled">#fff</color>
-    <color name="background_divider">#ddd</color>
-    <color name="text_week">#888</color>
-    <color name="text_month">#444</color>
+    <color name="background_disabled">#0000</color>
     <color name="text_day">#000</color>
     <color name="text_selected">#fff</color>
     <color name="text_today">#f00</color>
@@ -17,6 +12,26 @@
     <color name="text_festival">#f00</color>
     <color name="text_weekend">#f00</color>
     <color name="text_disabled">#ccc</color>
+
+    <integer name="year_from">2011</integer>
+    <integer name="month_from">1</integer>
+    <integer name="special_count">15</integer>
+    <integer name="max_double_selected_count">90</integer>
+
+    <string name="special">预售</string>
+    <string name="today">今天</string>
+    <string name="format_month">%1$d年%2$d月</string>
+    <string name="format_date">%1$04d-%2$02d-%3$02d</string>
+    <string name="key_festival">festival</string>
+
+    <eat-comment/>
+
+    <color name="background_calendar">#fff</color>
+    <color name="background_week">#eee</color>
+    <color name="background_month">#fff</color>
+    <color name="background_divider">#ddd</color>
+    <color name="text_week">#888</color>
+    <color name="text_month">#444</color>
 
     <dimen name="height_week">40dp</dimen>
     <dimen name="height_month">32dp</dimen>
@@ -29,12 +44,6 @@
     <dimen name="text_size_day">13sp</dimen>
     <dimen name="text_size_special">10sp</dimen>
 
-    <integer name="year_from">2011</integer>
-    <integer name="month_from">1</integer>
-    <integer name="special_count">15</integer>
-    <integer name="max_double_selected_count">90</integer>
-
-    <string name="special">预售</string>
     <string name="sunday">日</string>
     <string name="monday">一</string>
     <string name="tuesday">二</string>
@@ -42,10 +51,6 @@
     <string name="thursday">四</string>
     <string name="friday">五</string>
     <string name="saturday">六</string>
-    <string name="today">今天</string>
-    <string name="month_string">%1$d年%2$d月</string>
-    <string name="date_string">%1$d年%2$d月%3$d日</string>
-    <string name="festival_root_key">festival</string>
 
     <style name="WeekTextView">
         <item name="android:layout_width">0dp</item>

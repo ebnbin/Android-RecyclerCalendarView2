@@ -15,22 +15,14 @@ import java.util.List;
  * 日历 adapter.
  */
 final class CalendarAdapter extends RecyclerView.Adapter implements PinnedHeaderRecyclerView.PinnedHeaderAdapter {
-    private final Context mContext;
-
-    private final GridLayoutManager mCalendarLayoutManager;
-
     private final LayoutInflater mLayoutInflater;
 
     private final List<CalendarEntity> mCalendarData = new ArrayList<>();
 
     private OnDayClickListener mOnDayClickListener;
 
-    CalendarAdapter(Context context, GridLayoutManager calendarLayoutManager) {
-        mContext = context;
-
-        mCalendarLayoutManager = calendarLayoutManager;
-
-        mLayoutInflater = LayoutInflater.from(mContext);
+    CalendarAdapter(Context context) {
+        mLayoutInflater = LayoutInflater.from(context);
     }
 
     /**
@@ -94,7 +86,7 @@ final class CalendarAdapter extends RecyclerView.Adapter implements PinnedHeader
                 DayViewHolder dayViewHolder = (DayViewHolder) holder;
 
                 dayViewHolder.itemView.setEnabled(calendarEntity.isEnabled);
-                dayViewHolder.itemView.setBackgroundColor(getColor(calendarEntity.getBackgroundColor()));
+                dayViewHolder.itemView.setBackgroundColor(calendarEntity.getBackgroundColor());
                 dayViewHolder.itemView.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
@@ -105,18 +97,14 @@ final class CalendarAdapter extends RecyclerView.Adapter implements PinnedHeader
                 });
 
                 dayViewHolder.dayTextView.setText(calendarEntity.dayString);
-                dayViewHolder.dayTextView.setTextColor(getColor(calendarEntity.getTextColor()));
+                dayViewHolder.dayTextView.setTextColor(calendarEntity.getTextColor());
 
                 dayViewHolder.specialTextView.setText(calendarEntity.specialString);
-                dayViewHolder.specialTextView.setTextColor(getColor(calendarEntity.getTextColor()));
+                dayViewHolder.specialTextView.setTextColor(calendarEntity.getTextColor());
 
                 break;
             }
         }
-    }
-
-    private int getColor(int resId) {
-        return mContext.getResources().getColor(resId);
     }
 
     @Override
@@ -128,10 +116,11 @@ final class CalendarAdapter extends RecyclerView.Adapter implements PinnedHeader
     public void onAttachedToRecyclerView(RecyclerView recyclerView) {
         super.onAttachedToRecyclerView(recyclerView);
 
-        final GridLayoutManager.SpanSizeLookup oldSizeLookup = mCalendarLayoutManager.getSpanSizeLookup();
-        final int spanCount = mCalendarLayoutManager.getSpanCount();
+        GridLayoutManager gridLayoutManager = (GridLayoutManager) recyclerView.getLayoutManager();
+        final GridLayoutManager.SpanSizeLookup oldSizeLookup = gridLayoutManager.getSpanSizeLookup();
+        final int spanCount = gridLayoutManager.getSpanCount();
 
-        mCalendarLayoutManager.setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup() {
+        gridLayoutManager.setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup() {
             @Override
             public int getSpanSize(int position) {
                 int itemType = getItemViewType(position);
