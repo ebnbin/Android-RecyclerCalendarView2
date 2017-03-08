@@ -26,7 +26,8 @@ public class MainActivity extends Activity {
 
         boolean doubleSelected = mRecyclerCalendarView.isDoubleSelectedMode();
         MenuItem doubleSelectedMenuItem = menu.findItem(R.id.double_selected_mode);
-        doubleSelectedMenuItem.setTitle(doubleSelected ? R.string.single_selected_mode : R.string.double_selected_mode);
+        doubleSelectedMenuItem.setTitle(doubleSelected ? R.string.single_selected_mode
+                : R.string.double_selected_mode);
 
         return true;
     }
@@ -45,7 +46,6 @@ public class MainActivity extends Activity {
             }
             case R.id.reset_selected: {
                 mRecyclerCalendarView.resetSelected();
-                mRecyclerCalendarView.scrollToSelected();
 
                 return true;
             }

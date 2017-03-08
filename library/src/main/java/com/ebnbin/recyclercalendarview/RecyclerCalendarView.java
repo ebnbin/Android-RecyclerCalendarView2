@@ -5,17 +5,9 @@ import android.support.annotation.AttrRes;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.GridLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.util.AttributeSet;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
 import android.widget.FrameLayout;
-import android.widget.TextView;
 import android.widget.Toast;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * 列表日历 view.
@@ -42,8 +34,6 @@ public class RecyclerCalendarView extends FrameLayout {
      * 今天日期.
      */
     private int[] mTodayDate;
-
-    private final List<CalendarEntity> mCalendarData = new ArrayList<>();
 
     private PinnedHeaderRecyclerView mCalendarRecyclerView;
 
@@ -76,7 +66,15 @@ public class RecyclerCalendarView extends FrameLayout {
         mCalendarLayoutManager = new GridLayoutManager(getContext(), 7);
         mCalendarRecyclerView.setLayoutManager(mCalendarLayoutManager);
 
-        mCalendarAdapter = new CalendarAdapter();
+        mCalendarAdapter = new CalendarAdapter(getContext(), mCalendarLayoutManager);
+        mCalendarAdapter.setOnDayClickListener(new CalendarAdapter.OnDayClickListener() {
+            @Override
+            void onDayClick(int position) {
+                super.onDayClick(position);
+
+                clickPosition(position, true, true);
+            }
+        });
         mCalendarRecyclerView.setAdapter(mCalendarAdapter);
 
         mCalendarRecyclerView.setPinnedHeaderView(R.layout.item_month);
@@ -139,12 +137,12 @@ public class RecyclerCalendarView extends FrameLayout {
         if (mDoubleSelectedMode != doubleSelectedMode) {
             mDoubleSelectedMode = doubleSelectedMode;
 
-            mCalendarData.clear();
+            mCalendarAdapter.setCalendarData(null);
         }
 
-        if (mCalendarData.isEmpty()) {
-            mCalendarData.addAll(CalendarEntity.newCalendarData(getContext(), mDoubleSelectedMode, mTodayDate,
-                    mSpecialCount, mYearFrom, mMonthFrom));
+        if (mCalendarAdapter.getCalendarData().isEmpty()) {
+            mCalendarAdapter.setCalendarData(CalendarEntity.newCalendarData(getContext(), mDoubleSelectedMode,
+                    mTodayDate, mSpecialCount, mYearFrom, mMonthFrom));
         }
 
         resetSelected(notifyDataSetChanged);
@@ -330,7 +328,7 @@ public class RecyclerCalendarView extends FrameLayout {
      * 设置位置的选中状态.
      */
     private void setPositionSelected(int position, int selected) {
-        CalendarEntity calendarEntity = mCalendarData.get(position);
+        CalendarEntity calendarEntity = mCalendarAdapter.getCalendarData().get(position);
         if (calendarEntity.itemType == CalendarEntity.ITEM_TYPE_DAY) {
             calendarEntity.selectedType = selected;
         }
@@ -340,8 +338,8 @@ public class RecyclerCalendarView extends FrameLayout {
      * 返回指定日期的位置, 如果没找到则返回 -1.
      */
     private int getPosition(int[] date) {
-        for (int position = 0; position < mCalendarData.size(); position++) {
-            CalendarEntity calendarEntity = mCalendarData.get(position);
+        for (int position = 0; position < mCalendarAdapter.getCalendarData().size(); position++) {
+            CalendarEntity calendarEntity = mCalendarAdapter.getCalendarData().get(position);
             if (calendarEntity.itemType == CalendarEntity.ITEM_TYPE_DAY
                     && Util.isDateEqual(calendarEntity.date, date)) {
                 return position;
@@ -349,50 +347,6 @@ public class RecyclerCalendarView extends FrameLayout {
         }
 
         return -1;
-    }
-
-    //*****************************************************************************************************************
-    // 回调.
-
-    /**
-     * 单选回调.
-     */
-    private void onSingleSelected(int position) {
-        CalendarEntity calendarEntity = mCalendarAdapter.getCalendarEntity(position);
-        Toast.makeText(getContext(), calendarEntity.dateString, Toast.LENGTH_SHORT).show();
-    }
-
-    /**
-     * 双选回调.
-     */
-    private void onDoubleSelected(int positionFrom, int positionTo, int dayCount) {
-        CalendarEntity calendarEntityFrom = mCalendarAdapter.getCalendarEntity(positionFrom);
-        CalendarEntity calendarEntityTo = mCalendarAdapter.getCalendarEntity(positionTo);
-        Toast.makeText(getContext(), calendarEntityFrom.dateString + "~" + calendarEntityTo.dateString + "," + dayCount,
-                Toast.LENGTH_SHORT).show();
-    }
-
-    /**
-     * 双选选中第一个日期回调.
-     */
-    private void onDoubleFirstSelected(int position) {
-        CalendarEntity calendarEntity = mCalendarAdapter.getCalendarEntity(position);
-        Toast.makeText(getContext(), "已选中:" + calendarEntity.dateString, Toast.LENGTH_SHORT).show();
-    }
-
-    /**
-     * 双选取消第一个日期回调.
-     */
-    private void onDoubleFirstUnselected(int position) {
-        CalendarEntity calendarEntity = mCalendarAdapter.getCalendarEntity(position);
-        Toast.makeText(getContext(), "已取消:" + calendarEntity.dateString, Toast.LENGTH_SHORT).show();
-    }
-
-    /**
-     * 超过最大双选天数回调.
-     */
-    private void onExceedMaxDoubleSelectedCount(int dayCount) {
-        Toast.makeText(getContext(), "" + dayCount, Toast.LENGTH_SHORT).show();
     }
 
     //*****************************************************************************************************************
@@ -451,164 +405,46 @@ public class RecyclerCalendarView extends FrameLayout {
     }
 
     //*****************************************************************************************************************
-    // Adapter.
+    // 回调.
 
     /**
-     * 日历 adapter.
+     * 单选回调.
      */
-    private final class CalendarAdapter extends RecyclerView.Adapter
-            implements PinnedHeaderRecyclerView.PinnedHeaderAdapter {
-        private final LayoutInflater mLayoutInflater;
-
-        CalendarAdapter() {
-            mLayoutInflater = LayoutInflater.from(getContext());
-        }
-
-        @Override
-        public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-            switch (viewType) {
-                case CalendarEntity.ITEM_TYPE_MONTH: {
-                    return new MonthViewHolder(mLayoutInflater.inflate(R.layout.item_month, parent, false));
-                }
-                case CalendarEntity.ITEM_TYPE_DAY: {
-                    return new DayViewHolder(mLayoutInflater.inflate(R.layout.item_day, parent, false));
-                }
-                case CalendarEntity.ITEM_TYPE_EMPTY_DAY: {
-                    return new EmptyDayViewHolder(mLayoutInflater.inflate(R.layout.item_empty_day, parent, false));
-                }
-                case CalendarEntity.ITEM_TYPE_DIVIDER: {
-                    return new DividerViewHolder(mLayoutInflater.inflate(R.layout.item_divider, parent, false));
-                }
-                default: {
-                    return null;
-                }
-            }
-        }
-
-        @Override
-        public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
-            int viewType = getItemViewType(position);
-            final int layoutPosition = holder.getLayoutPosition();
-            final CalendarEntity calendarEntity = getCalendarEntity(holder.getLayoutPosition());
-
-            switch (viewType) {
-                case CalendarEntity.ITEM_TYPE_MONTH: {
-                    MonthViewHolder monthViewHolder = (MonthViewHolder) holder;
-
-                    monthViewHolder.monthTextView.setText(calendarEntity.monthString);
-
-                    break;
-                }
-                case CalendarEntity.ITEM_TYPE_DAY: {
-                    DayViewHolder dayViewHolder = (DayViewHolder) holder;
-
-                    dayViewHolder.itemView.setEnabled(calendarEntity.isEnabled);
-                    dayViewHolder.itemView.setBackgroundColor(getResources().getColor(
-                            calendarEntity.getBackgroundColor()));
-                    dayViewHolder.itemView.setOnClickListener(new OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            if (calendarEntity.isEnabled) {
-                                clickPosition(layoutPosition, true, true);
-                            }
-                        }
-                    });
-
-                    dayViewHolder.dayTextView.setText(calendarEntity.dayString);
-                    dayViewHolder.dayTextView.setTextColor(getResources().getColor(calendarEntity.getTextColor()));
-
-                    dayViewHolder.specialTextView.setText(calendarEntity.specialString);
-                    dayViewHolder.specialTextView.setTextColor(getResources().getColor(calendarEntity.getTextColor()));
-
-                    break;
-                }
-            }
-        }
-
-        @Override
-        public int getItemCount() {
-            return mCalendarData.size();
-        }
-
-        @Override
-        public void onAttachedToRecyclerView(RecyclerView recyclerView) {
-            super.onAttachedToRecyclerView(recyclerView);
-
-            final GridLayoutManager.SpanSizeLookup oldSizeLookup = mCalendarLayoutManager.getSpanSizeLookup();
-            final int spanCount = mCalendarLayoutManager.getSpanCount();
-
-            mCalendarLayoutManager.setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup() {
-                @Override
-                public int getSpanSize(int position) {
-                    int itemType = getItemViewType(position);
-                    if (itemType == CalendarEntity.ITEM_TYPE_MONTH || itemType == CalendarEntity.ITEM_TYPE_DIVIDER) {
-                        return spanCount;
-                    }
-                    if (oldSizeLookup != null) {
-                        return oldSizeLookup.getSpanSize(position);
-                    }
-                    return 1;
-                }
-            });
-        }
-
-        @Override
-        public int getItemViewType(int position) {
-            return getCalendarEntity(position).itemType;
-        }
-
-        public CalendarEntity getCalendarEntity(int position) {
-            return mCalendarData.get(position);
-        }
-
-        @Override
-        public int getPinnedHeaderState(int position) {
-            return getCalendarEntity(position).isLastSundayOfMonth
-                    ? PinnedHeaderRecyclerView.PinnedHeaderAdapter.STATE_PUSHABLE
-                    : PinnedHeaderRecyclerView.PinnedHeaderAdapter.STATE_VISIBLE;
-        }
-
-        @Override
-        public void configurePinnedHeader(View pinnedHeaderView, int position) {
-            TextView yearMonthTextView = (TextView) pinnedHeaderView.findViewById(R.id.month);
-            yearMonthTextView.setText(getCalendarEntity(position).monthString);
-        }
+    private void onSingleSelected(int position) {
+        CalendarEntity calendarEntity = mCalendarAdapter.getCalendarEntity(position);
+        Toast.makeText(getContext(), calendarEntity.dateString, Toast.LENGTH_SHORT).show();
     }
 
-    //*****************************************************************************************************************
-    // ViewHolder.
-
-    private static final class MonthViewHolder extends RecyclerView.ViewHolder {
-        public final TextView monthTextView;
-
-        MonthViewHolder(View itemView) {
-            super(itemView);
-
-            monthTextView = (TextView) itemView.findViewById(R.id.month);
-        }
+    /**
+     * 双选回调.
+     */
+    private void onDoubleSelected(int positionFrom, int positionTo, int dayCount) {
+        CalendarEntity calendarEntityFrom = mCalendarAdapter.getCalendarEntity(positionFrom);
+        CalendarEntity calendarEntityTo = mCalendarAdapter.getCalendarEntity(positionTo);
+        Toast.makeText(getContext(), calendarEntityFrom.dateString + "~" + calendarEntityTo.dateString + "," + dayCount,
+                Toast.LENGTH_SHORT).show();
     }
 
-    private static final class DayViewHolder extends RecyclerView.ViewHolder {
-        public final TextView dayTextView;
-        public final TextView specialTextView;
-
-        DayViewHolder(View itemView) {
-            super(itemView);
-
-            dayTextView = (TextView) itemView.findViewById(R.id.day);
-            specialTextView = (TextView) itemView.findViewById(R.id.special);
-        }
+    /**
+     * 双选选中第一个日期回调.
+     */
+    private void onDoubleFirstSelected(int position) {
+        CalendarEntity calendarEntity = mCalendarAdapter.getCalendarEntity(position);
+        Toast.makeText(getContext(), "已选中:" + calendarEntity.dateString, Toast.LENGTH_SHORT).show();
     }
 
-    private static final class EmptyDayViewHolder extends RecyclerView.ViewHolder {
-        EmptyDayViewHolder(View itemView) {
-            super(itemView);
-        }
+    /**
+     * 双选取消第一个日期回调.
+     */
+    private void onDoubleFirstUnselected(int position) {
+        CalendarEntity calendarEntity = mCalendarAdapter.getCalendarEntity(position);
+        Toast.makeText(getContext(), "已取消:" + calendarEntity.dateString, Toast.LENGTH_SHORT).show();
     }
 
-    private static final class DividerViewHolder extends RecyclerView.ViewHolder {
-        DividerViewHolder(View itemView) {
-            super(itemView);
-        }
+    /**
+     * 超过最大双选天数回调.
+     */
+    private void onExceedMaxDoubleSelectedCount(int dayCount) {
+        Toast.makeText(getContext(), "" + dayCount, Toast.LENGTH_SHORT).show();
     }
 }
