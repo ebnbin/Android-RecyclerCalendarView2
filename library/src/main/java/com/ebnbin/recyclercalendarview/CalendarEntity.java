@@ -25,19 +25,18 @@ final class CalendarEntity implements MultiItemEntity {
     /**
      * 返回一个日历数据.
      */
-    public static List<CalendarEntity> newCalendarData(Context context, boolean doubleSelectedMode, int[] todayDate) {
+    public static List<CalendarEntity> newCalendarData(Context context, boolean doubleSelectedMode, int[] todayDate,
+            int specialCount, int yearFrom, int monthFrom) {
         List<CalendarEntity> calendarData = new ArrayList<>();
 
-        int[] specialDateBefore = Util.addDate(todayDate, doubleSelectedMode ? 0 : Util.SPECIAL_DAYS);
+        int[] specialDateBefore = Util.addDate(todayDate, doubleSelectedMode ? 0 : specialCount);
 
-        int yearFrom = Util.YEAR_FROM;
-        int monthFrom = Util.MONTH_FROM;
         int yearTo = specialDateBefore[0];
         int monthTo = specialDateBefore[1];
 
         Map<int[], String> festivals = getFestivals(context);
 
-        int week = Util.getWeekOfFirstDayOfMonth(yearFrom, monthFrom);
+        int week = Util.getWeek(new int[]{yearFrom, monthFrom, 1});
         int weekOfFirstDayOfMonth = week;
 
         for (int year = yearFrom; year <= yearTo; year++) {
@@ -46,178 +45,34 @@ final class CalendarEntity implements MultiItemEntity {
                     continue;
                 }
 
-                createMonthCalendarEntity(calendarData, context, year, month);
+                CalendarEntity monthCalendarEntity = new CalendarEntity(context, year, month, ITEM_TYPE_MONTH);
+                calendarData.add(monthCalendarEntity);
 
                 for (int emptyDay = 0; emptyDay < weekOfFirstDayOfMonth; emptyDay++) {
-                    createEmptyDayCalendarEntity(calendarData, context, year, month);
+                    CalendarEntity emptyDayCalendarEntity = new CalendarEntity(context, year, month,
+                            ITEM_TYPE_EMPTY_DAY);
+                    calendarData.add(emptyDayCalendarEntity);
                 }
 
                 int daysOfMonth = Util.getDaysOfMonth(year, month);
                 int lastSundayOfMonth = Util.getLastSundayOfMonth(daysOfMonth, weekOfFirstDayOfMonth);
 
                 for (int day = 1; day <= daysOfMonth; day++) {
-                    createDayCalendarEntity(calendarData, context, year, month, day, todayDate, specialDateBefore,
-                            festivals, week, lastSundayOfMonth, doubleSelectedMode);
+                    CalendarEntity dayCalendarEntity = new CalendarEntity(context, new int[]{year, month, day},
+                            todayDate, specialDateBefore, festivals, week, lastSundayOfMonth, doubleSelectedMode);
+                    calendarData.add(dayCalendarEntity);
 
-                    week = Util.getWeek(week, 1);
+                    week = Util.addWeek(week, 1);
                 }
 
-                weekOfFirstDayOfMonth = Util.getWeek(weekOfFirstDayOfMonth, daysOfMonth);
+                weekOfFirstDayOfMonth = Util.addWeek(weekOfFirstDayOfMonth, daysOfMonth);
             }
         }
 
-        createDividerCalendarEntity(calendarData);
+        CalendarEntity dividerCalendarEntity = new CalendarEntity();
+        calendarData.add(dividerCalendarEntity);
 
         return calendarData;
-    }
-
-    /**
-     * 返回一个月类型的日历实体对象.
-     */
-    private static void createMonthCalendarEntity(List<CalendarEntity> calendarData, Context context, int year,
-            int month) {
-        int itemType = ITEM_TYPE_MONTH;
-
-        int day = 0;
-
-        String special = null;
-        String festival = null;
-
-        int week = -1;
-
-        boolean isToday = false;
-        boolean isPresent = false;
-        boolean isSpecial = false;
-        boolean isEnabled = false;
-        boolean isFestival = false;
-        boolean isWeekend = false;
-
-        boolean isLastSundayOfMonth = false;
-
-        String monthString = context.getString(R.string.month_string, year, month);
-        String dayString = null;
-        String specialString = null;
-        String dateString = null;
-
-        int selectedType = SELECTED_TYPE_UNSELECTED;
-
-        CalendarEntity monthCalendarEntity = new CalendarEntity(itemType, year, month, day, special, festival, week,
-                isToday, isPresent, isSpecial, isEnabled, isFestival, isWeekend, isLastSundayOfMonth, monthString,
-                dayString, specialString, dateString, selectedType);
-        calendarData.add(monthCalendarEntity);
-    }
-
-    /**
-     * 返回一个日类型的日历实体对象.
-     */
-    private static void createDayCalendarEntity(List<CalendarEntity> calendarData, Context context, int year,
-            int month, int day, int[] todayDate, int[] specialDateBefore, Map<int[], String> festivals, int week,
-            int lastSundayOfMonth, boolean doubleSelectedMode) {
-        int[] date = new int[]{year, month, day};
-
-        int itemType = ITEM_TYPE_DAY;
-
-        String special = context.getString(R.string.special);
-        String festival = null;
-        for (int[] key : festivals.keySet()) {
-            if (Util.isDateEqual(key, date)) {
-                festival = festivals.get(key);
-            }
-        }
-
-        boolean isToday = Util.isDateEqual(date, todayDate);
-        boolean isPresent = Util.isDateBefore(date, todayDate, true);
-        boolean isSpecial = Util.isDateBetween(date, todayDate, specialDateBefore, false, true);
-        boolean isEnabled = isPresent || isSpecial;
-        boolean isFestival = !TextUtils.isEmpty(festival);
-        boolean isWeekend = week == 0 || week == 6;
-
-        boolean isLastSundayOfMonth = day == lastSundayOfMonth;
-
-        String monthString = context.getString(R.string.month_string, year, month);
-        String dayString = isToday ? context.getString(R.string.today) : isFestival ? festival : String.valueOf(day);
-        String specialString = isSpecial ? TextUtils.isEmpty(special) ? "" : special : null;
-        String dateString = context.getString(R.string.date_string, year, month, day);
-
-        int selectedType = doubleSelectedMode || !isToday ? SELECTED_TYPE_UNSELECTED : SELECTED_TYPE_SELECTED;
-
-        CalendarEntity dayCalendarEntity = new CalendarEntity(itemType, year, month, day, special, festival, week,
-                isToday, isPresent, isSpecial, isEnabled, isFestival, isWeekend, isLastSundayOfMonth, monthString,
-                dayString, specialString, dateString, selectedType);
-        calendarData.add(dayCalendarEntity);
-    }
-
-    /**
-     * 返回一个空白日类型的日历实体对象.
-     */
-    private static void createEmptyDayCalendarEntity(List<CalendarEntity> calendarData, Context context, int year,
-            int month) {
-        int itemType = ITEM_TYPE_EMPTY_DAY;
-
-        int day = 0;
-
-        String special = null;
-        String festival = null;
-
-        int week = -1;
-
-        boolean isToday = false;
-        boolean isPresent = false;
-        boolean isSpecial = false;
-        boolean isEnabled = false;
-        boolean isFestival = false;
-        boolean isWeekend = false;
-
-        boolean isLastSundayOfMonth = false;
-
-        String monthString = context.getString(R.string.month_string, year, month);
-        String dayString = null;
-        String specialString = null;
-        String dateString = null;
-
-        int selectedType = SELECTED_TYPE_UNSELECTED;
-
-        CalendarEntity emptyDayCalendarEntity =  new CalendarEntity(itemType, year, month, day, special, festival,
-                week, isToday, isPresent, isSpecial, isEnabled, isFestival, isWeekend, isLastSundayOfMonth,
-                monthString, dayString, specialString, dateString, selectedType);
-        calendarData.add(emptyDayCalendarEntity);
-    }
-
-    /**
-     * 返回一个分割线类型的日历实体对象.
-     */
-    private static void createDividerCalendarEntity(List<CalendarEntity> calendarData) {
-        int itemType = ITEM_TYPE_DIVIDER;
-
-        int year = 0;
-        int month = 0;
-        int day = 0;
-
-        String special = null;
-        String festival = null;
-
-        int week = -1;
-
-        boolean isToday = false;
-        boolean isPresent = false;
-        boolean isSpecial = false;
-        boolean isEnabled = false;
-        boolean isFestival = false;
-        boolean isWeekend = false;
-
-        boolean isLastSundayOfMonth = false;
-
-        String monthString = null;
-        String dayString = null;
-        String specialString = null;
-        String dateString = null;
-
-        int selectedType = SELECTED_TYPE_UNSELECTED;
-
-        CalendarEntity dividerCalendarEntity = new CalendarEntity(itemType, year, month, day, special, festival, week,
-                isToday, isPresent, isSpecial, isEnabled, isFestival, isWeekend, isLastSundayOfMonth, monthString,
-                dayString, specialString, dateString, selectedType);
-        calendarData.add(dividerCalendarEntity);
     }
 
     /**
@@ -309,6 +164,10 @@ final class CalendarEntity implements MultiItemEntity {
     public final int itemType;
 
     /**
+     * 日期.
+     */
+    public final int[] date;
+    /**
      * 年.
      */
     public final int year;
@@ -387,29 +246,90 @@ final class CalendarEntity implements MultiItemEntity {
      */
     public int selectedType;
 
-    private CalendarEntity(int itemType, int year, int month, int day, String special, String festival, int week,
-            boolean isToday, boolean isPresent, boolean isSpecial, boolean isEnabled, boolean isFestival,
-            boolean isWeekend, boolean isLastSundayOfMonth, String monthString, String dayString,
-            String specialString, String dateString, int selectedType) {
+    /**
+     * 创建月类型或空白日类型的对象.
+     */
+    private CalendarEntity(Context context, int year, int month, int itemType) {
         this.itemType = itemType;
+        this.date = null;
         this.year = year;
         this.month = month;
-        this.day = day;
-        this.special = special;
+        this.day = 0;
+        this.special = null;
+        this.festival = null;
+        this.week = -1;
+        this.isToday = false;
+        this.isPresent = false;
+        this.isSpecial = false;
+        this.isEnabled = false;
+        this.isFestival = false;
+        this.isWeekend = false;
+        this.isLastSundayOfMonth = false;
+        this.monthString = context.getString(R.string.month_string, year, month);
+        this.dayString = null;
+        this.specialString = null;
+        this.dateString = null;
+        this.selectedType = SELECTED_TYPE_UNSELECTED;
+    }
+
+    /**
+     * 创建日类型的对象.
+     */
+    private CalendarEntity(Context context, int[] date, int[] todayDate, int[] specialDateBefore,
+            Map<int[], String> festivals, int week, int lastSundayOfMonth, boolean doubleSelectedMode) {
+        String festival = null;
+        for (int[] key : festivals.keySet()) {
+            if (Util.isDateEqual(key, date)) {
+                festival = festivals.get(key);
+            }
+        }
+
+        this.itemType = ITEM_TYPE_DAY;
+        this.date = date;
+        this.year = date[0];
+        this.month = date[1];
+        this.day = date[2];
+        this.special = context.getString(R.string.special);
         this.festival = festival;
         this.week = week;
-        this.isToday = isToday;
-        this.isPresent = isPresent;
-        this.isSpecial = isSpecial;
-        this.isEnabled = isEnabled;
-        this.isFestival = isFestival;
-        this.isWeekend = isWeekend;
-        this.isLastSundayOfMonth = isLastSundayOfMonth;
-        this.monthString = monthString;
-        this.dayString = dayString;
-        this.specialString = specialString;
-        this.dateString = dateString;
-        this.selectedType = selectedType;
+        this.isToday = Util.isDateEqual(date, todayDate);
+        this.isPresent = Util.isDateBefore(date, todayDate, true);
+        this.isSpecial = Util.isDateBetween(date, todayDate, specialDateBefore, false, true);
+        this.isEnabled = isPresent || isSpecial;
+        this.isFestival = !TextUtils.isEmpty(festival);
+        this.isWeekend = week == 0 || week == 6;
+        this.isLastSundayOfMonth = day == lastSundayOfMonth;
+        this.monthString = context.getString(R.string.month_string, year, month);
+        this.dayString = isToday ? context.getString(R.string.today) : isFestival ? festival : String.valueOf(day);
+        this.specialString = isSpecial ? TextUtils.isEmpty(special) ? "" : special : null;
+        this.dateString = context.getString(R.string.date_string, year, month, day);
+        this.selectedType = doubleSelectedMode || !isToday ? SELECTED_TYPE_UNSELECTED : SELECTED_TYPE_SELECTED;
+    }
+
+    /**
+     * 创建分隔线类型的对象.
+     */
+    private CalendarEntity() {
+        this.itemType = ITEM_TYPE_DIVIDER;
+        this.date = null;
+        this.year = 0;
+        this.month = 0;
+        this.day = 0;
+        this.special = null;
+        this.festival = null;
+        this.week = -1;
+        this.isToday = false;
+        this.isPresent = false;
+        this.isSpecial = false;
+        this.isEnabled = false;
+        this.isFestival = false;
+        this.isWeekend = false;
+        this.isLastSundayOfMonth = false;
+        this.monthString = null;
+        this.dayString = null;
+        this.specialString = null;
+        this.dateString = null;
+        this.selectedType = SELECTED_TYPE_UNSELECTED;
     }
 
     @Override
@@ -428,36 +348,36 @@ final class CalendarEntity implements MultiItemEntity {
 
         // 不可用.
         if (!isEnabled) {
-            return R.color.disabled_text;
+            return R.color.text_disabled;
         }
 
         // 选中的.
         if (selectedType != SELECTED_TYPE_UNSELECTED) {
-            return R.color.selected_text;
+            return R.color.text_selected;
         }
 
         // 今天.
         if (isToday) {
-            return R.color.unselected_today_text;
+            return R.color.text_today;
         }
 
         // 特殊.
         if (isSpecial) {
-            return R.color.unselected_special_text;
+            return R.color.text_special;
         }
 
         // 节日.
         if (isFestival) {
-            return R.color.unselected_festival_text;
+            return R.color.text_festival;
         }
 
         // 周末.
         if (isWeekend) {
-            return R.color.unselected_weekend_text;
+            return R.color.text_weekend;
         }
 
         // 默认.
-        return R.color.unselected_text;
+        return R.color.text_day;
     }
 
     /**
@@ -471,19 +391,19 @@ final class CalendarEntity implements MultiItemEntity {
 
         // 不可用.
         if (!isEnabled) {
-            return R.color.unselected_background;
+            return R.color.background_disabled;
         }
 
         // 选中类型.
         switch (selectedType) {
             case SELECTED_TYPE_SELECTED: {
-                return R.color.selected_background;
+                return R.color.background_selected;
             }
             case SELECTED_TYPE_RANGED: {
-                return R.color.ranged_background;
+                return R.color.background_ranged;
             }
             default: {
-                return R.color.unselected_background;
+                return R.color.background_day;
             }
         }
     }

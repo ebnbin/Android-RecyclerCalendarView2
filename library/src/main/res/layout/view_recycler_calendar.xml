@@ -3,21 +3,21 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background">
+    android:background="@color/background_calendar">
     <com.ebnbin.recyclercalendarview.PinnedHeaderRecyclerView
         android:id="@+id/calendar"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginTop="@dimen/calendar_margin_top"
-        android:paddingBottom="@dimen/placeholder_height"
+        android:layout_marginTop="@dimen/margin_top_calendar"
+        android:paddingBottom="@dimen/height_placeholder"
         android:clipToPadding="false"
         android:scrollbars="vertical"
         android:scrollbarStyle="outsideOverlay"/>
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="@dimen/weeks_height"
+        android:layout_height="@dimen/height_week"
         android:orientation="horizontal"
-        android:background="@color/weeks_background">
+        android:background="@color/background_week">
         <TextView
             style="@style/WeekTextView"
             android:text="@string/sunday"/>

@@ -1,33 +1,40 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="background">#fff</color>
-    <color name="weeks_background">#eee</color>
-    <color name="divider">#ddd</color>
-    <color name="year_month_background">#fff</color>
-    <color name="unselected_background">#fff</color>
-    <color name="selected_background">#f00</color>
-    <color name="ranged_background">#f88</color>
-    <color name="unselected_text">#000</color>
-    <color name="selected_text">#fff</color>
-    <color name="unselected_today_text">#f00</color>
-    <color name="unselected_special_text">#fa0</color>
-    <color name="unselected_festival_text">#f00</color>
-    <color name="unselected_weekend_text">#f00</color>
-    <color name="disabled_text">#ccc</color>
-    <color name="week_text">#888</color>
-    <color name="year_month_text">#444</color>
+    <color name="background_calendar">#fff</color>
+    <color name="background_week">#eee</color>
+    <color name="background_month">#fff</color>
+    <color name="background_day">#fff</color>
+    <color name="background_selected">#f00</color>
+    <color name="background_ranged">#f88</color>
+    <color name="background_disabled">#fff</color>
+    <color name="background_divider">#ddd</color>
+    <color name="text_week">#888</color>
+    <color name="text_month">#444</color>
+    <color name="text_day">#000</color>
+    <color name="text_selected">#fff</color>
+    <color name="text_today">#f00</color>
+    <color name="text_special">#fa0</color>
+    <color name="text_festival">#f00</color>
+    <color name="text_weekend">#f00</color>
+    <color name="text_disabled">#ccc</color>
 
-    <dimen name="weeks_height">40dp</dimen>
-    <dimen name="date_height">48dp</dimen>
-    <dimen name="year_month_height">32dp</dimen>
-    <dimen name="divider_height">0.5dp</dimen>
-    <dimen name="placeholder_height">64dp</dimen>
-    <dimen name="calendar_margin_top">39.5dp</dimen>
-    <dimen name="week_text_size">11sp</dimen>
-    <dimen name="year_month_text_size">12sp</dimen>
-    <dimen name="day_text_size">13sp</dimen>
-    <dimen name="special_text_size">10sp</dimen>
+    <dimen name="height_week">40dp</dimen>
+    <dimen name="height_month">32dp</dimen>
+    <dimen name="height_day">48dp</dimen>
+    <dimen name="height_divider">0.5dp</dimen>
+    <dimen name="height_placeholder">64dp</dimen>
+    <dimen name="margin_top_calendar">39.5dp</dimen>
+    <dimen name="text_size_week">11sp</dimen>
+    <dimen name="text_size_month">12sp</dimen>
+    <dimen name="text_size_day">13sp</dimen>
+    <dimen name="text_size_special">10sp</dimen>
 
+    <integer name="year_from">2011</integer>
+    <integer name="month_from">1</integer>
+    <integer name="special_count">15</integer>
+    <integer name="max_double_selected_count">90</integer>
+
+    <string name="special">预售</string>
     <string name="sunday">日</string>
     <string name="monday">一</string>
     <string name="tuesday">二</string>
@@ -35,10 +42,9 @@
     <string name="thursday">四</string>
     <string name="friday">五</string>
     <string name="saturday">六</string>
+    <string name="today">今天</string>
     <string name="month_string">%1$d年%2$d月</string>
     <string name="date_string">%1$d年%2$d月%3$d日</string>
-    <string name="today">今天</string>
-    <string name="special">预售</string>
     <string name="festival_root_key">festival</string>
 
     <style name="WeekTextView">
@@ -46,7 +52,7 @@
         <item name="android:layout_height">match_parent</item>
         <item name="android:layout_weight">1</item>
         <item name="android:gravity">center</item>
-        <item name="android:textColor">@color/week_text</item>
-        <item name="android:textSize">@dimen/week_text_size</item>
+        <item name="android:textColor">@color/text_week</item>
+        <item name="android:textSize">@dimen/text_size_week</item>
     </style>
 </resources>

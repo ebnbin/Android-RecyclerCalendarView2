@@ -11,37 +11,6 @@ import java.util.List;
  */
 final class Util {
     /**
-     * 默认开始年份.
-     */
-    public static final int YEAR_FROM = 2011;
-    /**
-     * 默认开始月份.
-     */
-    public static final int MONTH_FROM = 1;
-    /**
-     * 默认最大双选数量.
-     */
-    public static final int MAX_DOUBLE_SELECTED_COUNT = 90;
-    /**
-     * 默认特殊日期天数.
-     */
-    public static final int SPECIAL_DAYS = 15;
-
-    /**
-     * 返回指定日期在 calendarData 中的 position, 如果没找到则返回 -1.
-     */
-    public static int getPosition(List<CalendarEntity> calendarData, int[] date) {
-        for (int position = 0; position < calendarData.size(); position++) {
-            CalendarEntity calendarEntity = calendarData.get(position);
-            if (isDateEqual(new int[]{calendarEntity.year, calendarEntity.month, calendarEntity.day}, date)) {
-                return position;
-            }
-        }
-
-        return -1;
-    }
-
-    /**
      * 平年月份天数.
      */
     private static final int[] DAYS_OF_MONTHS = new int[]{31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
@@ -52,10 +21,10 @@ final class Util {
     private static final int WEEK_OF_19700101 = 4;
 
     /**
-     * 返回某年某月 1 日的星期.
+     * 返回某日期的星期.
      */
-    public static int getWeekOfFirstDayOfMonth(int year, int month) {
-        return (getDaysFrom19700101(new int[]{year, month, 1}) + WEEK_OF_19700101) % 7;
+    public static int getWeek(int[] date) {
+        return (getDaysFrom19700101(date) + WEEK_OF_19700101) % 7;
     }
 
     /**
@@ -99,6 +68,99 @@ final class Util {
     }
 
     /**
+     * 返回今天日期.
+     */
+    public static int[] getTodayDate() {
+        Calendar calendar = Calendar.getInstance();
+
+        int[] todayDate = new int[3];
+        todayDate[0] = calendar.get(Calendar.YEAR);
+        todayDate[1] = calendar.get(Calendar.MONTH) + 1;
+        todayDate[2] = calendar.get(Calendar.DATE);
+
+        return todayDate;
+    }
+
+    /**
+     * 计算日期.
+     */
+    public static int[] addDate(int[] date, int add) {
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(date[0], date[1] - 1, date[2]);
+        calendar.add(Calendar.DATE, add);
+
+        int[] newDate = new int[3];
+        newDate[0] = calendar.get(Calendar.YEAR);
+        newDate[1] = calendar.get(Calendar.MONTH) + 1;
+        newDate[2] = calendar.get(Calendar.DATE);
+
+        return newDate;
+    }
+
+    /**
+     * 计算星期.
+     */
+    public static int addWeek(int week, int add) {
+        return (week + add) % 7;
+    }
+
+    /**
+     * 是否在某日期之后.
+     */
+    public static boolean isDateAfter(int[] thisDate, int[] date, boolean canEqual) {
+        return thisDate[0] > date[0]
+                || thisDate[0] == date[0] && thisDate[1] > date[1]
+                || thisDate[0] == date[0] && thisDate[1] == date[1]
+                && (canEqual ? thisDate[2] >= date[2] : thisDate[2] > date[2]);
+    }
+
+    /**
+     * 是否在某日期之前.
+     */
+    public static boolean isDateBefore(int[] thisDate, int[] date, boolean canEqual) {
+        return thisDate[0] < date[0]
+                || thisDate[0] == date[0] && thisDate[1] < date[1]
+                || thisDate[0] == date[0] && thisDate[1] == date[1]
+                && (canEqual ? thisDate[2] <= date[2] : thisDate[2] < date[2]);
+    }
+
+    /**
+     * 是否在两个日期之间.
+     */
+    public static boolean isDateBetween(int[] thisDate, int[] dateAfter, int[] dateBefore, boolean canEqualAfter,
+            boolean canEqualBefore) {
+        return isDateAfter(thisDate, dateAfter, canEqualAfter) && isDateBefore(thisDate, dateBefore, canEqualBefore);
+    }
+
+    /**
+     * 是否与某日期相等.
+     */
+    public static boolean isDateEqual(int[] thisDate, int[] date) {
+        return thisDate[0] == date[0] && thisDate[1] == date[1] && thisDate[2] == date[2];
+    }
+
+    /**
+     * 返回某月的最后一个星期日的日期.
+     */
+    public static int getLastSundayOfMonth(int daysOfMonth, int weekOfFirstDayOfMonth) {
+        return (daysOfMonth + weekOfFirstDayOfMonth - 1) / 7 * 7 - weekOfFirstDayOfMonth + 1;
+    }
+
+    /**
+     * 返回指定日期在 calendarData 中的位置, 如果没找到则返回 -1.
+     */
+    public static int getPosition(List<CalendarEntity> calendarData, int[] date) {
+        for (int position = 0; position < calendarData.size(); position++) {
+            CalendarEntity calendarEntity = calendarData.get(position);
+            if (calendarEntity.itemType == CalendarEntity.ITEM_TYPE_DAY && isDateEqual(calendarEntity.date, date)) {
+                return position;
+            }
+        }
+
+        return -1;
+    }
+
+    /**
      * Copy from https://github.com/oubowu/PinnedSectionItemDecoration.
      */
     public static void fullSpan(final GridLayoutManager gridLayoutManager, final RecyclerView.Adapter adapter,
@@ -118,61 +180,5 @@ final class Util {
                 return 1;
             }
         });
-    }
-
-    public static int[] getTodayDate() {
-        int[] todayDate = new int[3];
-
-        Calendar calendar = Calendar.getInstance();
-
-        todayDate[0] = calendar.get(Calendar.YEAR);
-        todayDate[1] = calendar.get(Calendar.MONTH) + 1;
-        todayDate[2] = calendar.get(Calendar.DATE);
-
-        return todayDate;
-    }
-
-    public static int[] addDate(int[] date, int add) {
-        Calendar calendar = Calendar.getInstance();
-        calendar.set(date[0], date[1] - 1, date[2]);
-        calendar.add(Calendar.DATE, add);
-
-        int[] newDate = new int[3];
-        newDate[0] = calendar.get(Calendar.YEAR);
-        newDate[1] = calendar.get(Calendar.MONTH) + 1;
-        newDate[2] = calendar.get(Calendar.DATE);
-
-        return newDate;
-    }
-
-    public static boolean isDateAfter(int[] thisDate, int[] date, boolean canEqual) {
-        return thisDate[0] > date[0]
-                || thisDate[0] == date[0] && thisDate[1] > date[1]
-                || thisDate[0] == date[0] && thisDate[1] == date[1]
-                && (canEqual ? thisDate[2] >= date[2] : thisDate[2] > date[2]);
-    }
-
-    public static boolean isDateBefore(int[] thisDate, int[] date, boolean canEqual) {
-        return thisDate[0] < date[0]
-                || thisDate[0] == date[0] && thisDate[1] < date[1]
-                || thisDate[0] == date[0] && thisDate[1] == date[1]
-                && (canEqual ? thisDate[2] <= date[2] : thisDate[2] < date[2]);
-    }
-
-    public static boolean isDateBetween(int[] thisDate, int[] dateAfter, int[] dateBefore, boolean canEqualAfter,
-            boolean canEqualBefore) {
-        return isDateAfter(thisDate, dateAfter, canEqualAfter) && isDateBefore(thisDate, dateBefore, canEqualBefore);
-    }
-
-    public static boolean isDateEqual(int[] thisDate, int[] date) {
-        return thisDate[0] == date[0] && thisDate[1] == date[1] && thisDate[2] == date[2];
-    }
-
-    public static int getLastSundayOfMonth(int daysOfMonth, int weekOfFirstDayOfMonth) {
-        return (daysOfMonth + weekOfFirstDayOfMonth - 1) / 7 * 7 - weekOfFirstDayOfMonth + 1;
-    }
-
-    public static int getWeek(int current, int add) {
-        return (current + add) % 7;
     }
 }
