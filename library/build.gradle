@@ -12,5 +12,4 @@ android {
 
 dependencies {
     compile 'com.android.support:recyclerview-v7:25.2.0'
-    compile 'com.github.CymChad:BaseRecyclerViewAdapterHelper:2.8.3'
 }

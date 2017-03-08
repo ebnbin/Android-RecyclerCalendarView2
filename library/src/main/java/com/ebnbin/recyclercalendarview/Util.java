@@ -1,10 +1,6 @@
 package com.ebnbin.recyclercalendarview;
 
-import android.support.v7.widget.GridLayoutManager;
-import android.support.v7.widget.RecyclerView;
-
 import java.util.Calendar;
-import java.util.List;
 
 /**
  * 工具类.
@@ -144,41 +140,5 @@ final class Util {
      */
     public static int getLastSundayOfMonth(int daysOfMonth, int weekOfFirstDayOfMonth) {
         return (daysOfMonth + weekOfFirstDayOfMonth - 1) / 7 * 7 - weekOfFirstDayOfMonth + 1;
-    }
-
-    /**
-     * 返回指定日期在 calendarData 中的位置, 如果没找到则返回 -1.
-     */
-    public static int getPosition(List<CalendarEntity> calendarData, int[] date) {
-        for (int position = 0; position < calendarData.size(); position++) {
-            CalendarEntity calendarEntity = calendarData.get(position);
-            if (calendarEntity.itemType == CalendarEntity.ITEM_TYPE_DAY && isDateEqual(calendarEntity.date, date)) {
-                return position;
-            }
-        }
-
-        return -1;
-    }
-
-    /**
-     * Copy from https://github.com/oubowu/PinnedSectionItemDecoration.
-     */
-    public static void fullSpan(final GridLayoutManager gridLayoutManager, final RecyclerView.Adapter adapter,
-            final int pinnedHeaderType) {
-        // 如果是网格布局，这里处理标签的布局占满一行
-        final GridLayoutManager.SpanSizeLookup oldSizeLookup = gridLayoutManager.getSpanSizeLookup();
-        final int spanCount = gridLayoutManager.getSpanCount();
-        gridLayoutManager.setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup() {
-            @Override
-            public int getSpanSize(int position) {
-                if (adapter.getItemViewType(position) == pinnedHeaderType) {
-                    return spanCount;
-                }
-                if (oldSizeLookup != null) {
-                    return oldSizeLookup.getSpanSize(position);
-                }
-                return 1;
-            }
-        });
     }
 }

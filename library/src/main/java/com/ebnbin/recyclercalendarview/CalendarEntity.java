@@ -4,8 +4,6 @@ import android.content.Context;
 import android.support.v4.util.ArrayMap;
 import android.text.TextUtils;
 
-import com.chad.library.adapter.base.entity.MultiItemEntity;
-
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -21,7 +19,7 @@ import java.util.Map;
 /**
  * 日历实体类.
  */
-final class CalendarEntity implements MultiItemEntity {
+final class CalendarEntity {
     /**
      * 返回一个日历数据.
      */
@@ -330,11 +328,6 @@ final class CalendarEntity implements MultiItemEntity {
         this.specialString = null;
         this.dateString = null;
         this.selectedType = SELECTED_TYPE_UNSELECTED;
-    }
-
-    @Override
-    public int getItemType() {
-        return itemType;
     }
 
     /**
