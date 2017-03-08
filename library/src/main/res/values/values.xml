@@ -36,6 +36,7 @@
     <string name="friday">五</string>
     <string name="saturday">六</string>
     <string name="month_string">%1$d年%2$d月</string>
+    <string name="date_string">%1$d年%2$d月%3$d日</string>
     <string name="today">今天</string>
     <string name="special">预售</string>
     <string name="festival_root_key">festival</string>

@@ -100,6 +100,10 @@ class PinnedHeaderRecyclerView extends RecyclerView {
         }
 
         int position = ((LinearLayoutManager) getLayoutManager()).findFirstVisibleItemPosition();
+        if (position == -1) {
+            return;
+        }
+
         int state = mPinnedHeaderAdapter.getPinnedHeaderState(position);
 
         switch (state) {

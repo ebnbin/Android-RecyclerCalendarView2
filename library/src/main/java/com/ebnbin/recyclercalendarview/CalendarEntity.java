@@ -10,6 +10,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
@@ -24,11 +25,10 @@ final class CalendarEntity implements MultiItemEntity {
     /**
      * 返回一个日历数据.
      */
-    public static List<CalendarEntity> newCalendarData(Context context, boolean doubleSelected) {
+    public static List<CalendarEntity> newCalendarData(Context context, boolean doubleSelectedMode, int[] todayDate) {
         List<CalendarEntity> calendarData = new ArrayList<>();
 
-        int[] todayDate = Util.getTodayDate();
-        int[] specialDateBefore = Util.getDateFromToday(doubleSelected ? 0 : Util.SPECIAL_DAYS);
+        int[] specialDateBefore = Util.addDate(todayDate, doubleSelectedMode ? 0 : Util.SPECIAL_DAYS);
 
         int yearFrom = Util.YEAR_FROM;
         int monthFrom = Util.MONTH_FROM;
@@ -49,7 +49,7 @@ final class CalendarEntity implements MultiItemEntity {
                 createMonthCalendarEntity(calendarData, context, year, month);
 
                 for (int emptyDay = 0; emptyDay < weekOfFirstDayOfMonth; emptyDay++) {
-                    createEmptyDayCalendarEntity(calendarData);
+                    createEmptyDayCalendarEntity(calendarData, context, year, month);
                 }
 
                 int daysOfMonth = Util.getDaysOfMonth(year, month);
@@ -57,7 +57,7 @@ final class CalendarEntity implements MultiItemEntity {
 
                 for (int day = 1; day <= daysOfMonth; day++) {
                     createDayCalendarEntity(calendarData, context, year, month, day, todayDate, specialDateBefore,
-                            festivals, week, lastSundayOfMonth);
+                            festivals, week, lastSundayOfMonth, doubleSelectedMode);
 
                     week = Util.getWeek(week, 1);
                 }
@@ -97,10 +97,13 @@ final class CalendarEntity implements MultiItemEntity {
         String monthString = context.getString(R.string.month_string, year, month);
         String dayString = null;
         String specialString = null;
+        String dateString = null;
+
+        int selectedType = SELECTED_TYPE_UNSELECTED;
 
         CalendarEntity monthCalendarEntity = new CalendarEntity(itemType, year, month, day, special, festival, week,
                 isToday, isPresent, isSpecial, isEnabled, isFestival, isWeekend, isLastSundayOfMonth, monthString,
-                dayString, specialString);
+                dayString, specialString, dateString, selectedType);
         calendarData.add(monthCalendarEntity);
     }
 
@@ -109,7 +112,7 @@ final class CalendarEntity implements MultiItemEntity {
      */
     private static void createDayCalendarEntity(List<CalendarEntity> calendarData, Context context, int year,
             int month, int day, int[] todayDate, int[] specialDateBefore, Map<int[], String> festivals, int week,
-            int lastSundayOfMonth) {
+            int lastSundayOfMonth, boolean doubleSelectedMode) {
         int[] date = new int[]{year, month, day};
 
         int itemType = ITEM_TYPE_DAY;
@@ -134,21 +137,23 @@ final class CalendarEntity implements MultiItemEntity {
         String monthString = context.getString(R.string.month_string, year, month);
         String dayString = isToday ? context.getString(R.string.today) : isFestival ? festival : String.valueOf(day);
         String specialString = isSpecial ? TextUtils.isEmpty(special) ? "" : special : null;
+        String dateString = context.getString(R.string.date_string, year, month, day);
+
+        int selectedType = doubleSelectedMode || !isToday ? SELECTED_TYPE_UNSELECTED : SELECTED_TYPE_SELECTED;
 
         CalendarEntity dayCalendarEntity = new CalendarEntity(itemType, year, month, day, special, festival, week,
                 isToday, isPresent, isSpecial, isEnabled, isFestival, isWeekend, isLastSundayOfMonth, monthString,
-                dayString, specialString);
+                dayString, specialString, dateString, selectedType);
         calendarData.add(dayCalendarEntity);
     }
 
     /**
      * 返回一个空白日类型的日历实体对象.
      */
-    private static void createEmptyDayCalendarEntity(List<CalendarEntity> calendarData) {
+    private static void createEmptyDayCalendarEntity(List<CalendarEntity> calendarData, Context context, int year,
+            int month) {
         int itemType = ITEM_TYPE_EMPTY_DAY;
 
-        int year = 0;
-        int month = 0;
         int day = 0;
 
         String special = null;
@@ -165,13 +170,16 @@ final class CalendarEntity implements MultiItemEntity {
 
         boolean isLastSundayOfMonth = false;
 
-        String monthString = null;
+        String monthString = context.getString(R.string.month_string, year, month);
         String dayString = null;
         String specialString = null;
+        String dateString = null;
+
+        int selectedType = SELECTED_TYPE_UNSELECTED;
 
         CalendarEntity emptyDayCalendarEntity =  new CalendarEntity(itemType, year, month, day, special, festival,
                 week, isToday, isPresent, isSpecial, isEnabled, isFestival, isWeekend, isLastSundayOfMonth,
-                monthString, dayString, specialString);
+                monthString, dayString, specialString, dateString, selectedType);
         calendarData.add(emptyDayCalendarEntity);
     }
 
@@ -202,10 +210,13 @@ final class CalendarEntity implements MultiItemEntity {
         String monthString = null;
         String dayString = null;
         String specialString = null;
+        String dateString = null;
+
+        int selectedType = SELECTED_TYPE_UNSELECTED;
 
         CalendarEntity dividerCalendarEntity = new CalendarEntity(itemType, year, month, day, special, festival, week,
                 isToday, isPresent, isSpecial, isEnabled, isFestival, isWeekend, isLastSundayOfMonth, monthString,
-                dayString, specialString);
+                dayString, specialString, dateString, selectedType);
         calendarData.add(dividerCalendarEntity);
     }
 
@@ -213,16 +224,16 @@ final class CalendarEntity implements MultiItemEntity {
      * 读取 festival.json 文件并返回节日 map, key 为日期, value 为节日.
      */
     private static Map<int[], String> getFestivals(Context context) {
-        InputStream is = context.getResources().openRawResource(R.raw.festival);
-        BufferedReader br;
         StringBuilder stringBuilder = new StringBuilder();
         try {
+            InputStream is = context.getResources().openRawResource(R.raw.festival);
+            BufferedReader br;
             br = new BufferedReader(new InputStreamReader(is));
             String string;
             while ((string = br.readLine()) != null) {
                 stringBuilder.append(string);
             }
-        } catch (Exception e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
         String rootJsonString = stringBuilder.toString();
@@ -366,6 +377,10 @@ final class CalendarEntity implements MultiItemEntity {
      * 特殊字符串.
      */
     public final String specialString;
+    /**
+     * 日期字符串.
+     */
+    public final String dateString;
 
     /**
      * 选中类型.
@@ -375,7 +390,7 @@ final class CalendarEntity implements MultiItemEntity {
     private CalendarEntity(int itemType, int year, int month, int day, String special, String festival, int week,
             boolean isToday, boolean isPresent, boolean isSpecial, boolean isEnabled, boolean isFestival,
             boolean isWeekend, boolean isLastSundayOfMonth, String monthString, String dayString,
-            String specialString) {
+            String specialString, String dateString, int selectedType) {
         this.itemType = itemType;
         this.year = year;
         this.month = month;
@@ -393,6 +408,8 @@ final class CalendarEntity implements MultiItemEntity {
         this.monthString = monthString;
         this.dayString = dayString;
         this.specialString = specialString;
+        this.dateString = dateString;
+        this.selectedType = selectedType;
     }
 
     @Override

@@ -55,24 +55,24 @@ final class Util {
      * 返回某年某月 1 日的星期.
      */
     public static int getWeekOfFirstDayOfMonth(int year, int month) {
-        return (getDaysFrom19700101(year, month, 1) + WEEK_OF_19700101) % 7;
+        return (getDaysFrom19700101(new int[]{year, month, 1}) + WEEK_OF_19700101) % 7;
     }
 
     /**
      * 返回某年某月某日距离 1970 年 1 月 1 日的天数.
      */
-    private static int getDaysFrom19700101(int year, int month, int day) {
+    private static int getDaysFrom19700101(int[] date) {
         int days = 0;
 
-        for (int i = 1970; i < year; i++) {
+        for (int i = 1970; i < date[0]; i++) {
             days += getDaysOfYear(i);
         }
 
-        for (int i = 1; i < month; i++) {
-            days += getDaysOfMonth(year, i);
+        for (int i = 1; i < date[1]; i++) {
+            days += getDaysOfMonth(date[0], i);
         }
 
-        days += day - 1;
+        days += date[2] - 1;
 
         return days;
     }
@@ -101,43 +101,48 @@ final class Util {
     /**
      * Copy from https://github.com/oubowu/PinnedSectionItemDecoration.
      */
-    public static void fullSpan(RecyclerView recyclerView, final RecyclerView.Adapter adapter,
+    public static void fullSpan(final GridLayoutManager gridLayoutManager, final RecyclerView.Adapter adapter,
             final int pinnedHeaderType) {
         // 如果是网格布局，这里处理标签的布局占满一行
-        final RecyclerView.LayoutManager layoutManager = recyclerView.getLayoutManager();
-        if (layoutManager instanceof GridLayoutManager) {
-            final GridLayoutManager gridLayoutManager = (GridLayoutManager) layoutManager;
-            final GridLayoutManager.SpanSizeLookup oldSizeLookup = gridLayoutManager.getSpanSizeLookup();
-            gridLayoutManager.setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup() {
-                @Override
-                public int getSpanSize(int position) {
-                    if (adapter.getItemViewType(position) == pinnedHeaderType) {
-                        return gridLayoutManager.getSpanCount();
-                    }
-                    if (oldSizeLookup != null) {
-                        return oldSizeLookup.getSpanSize(position);
-                    }
-                    return 1;
+        final GridLayoutManager.SpanSizeLookup oldSizeLookup = gridLayoutManager.getSpanSizeLookup();
+        final int spanCount = gridLayoutManager.getSpanCount();
+        gridLayoutManager.setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup() {
+            @Override
+            public int getSpanSize(int position) {
+                if (adapter.getItemViewType(position) == pinnedHeaderType) {
+                    return spanCount;
                 }
-            });
-        }
+                if (oldSizeLookup != null) {
+                    return oldSizeLookup.getSpanSize(position);
+                }
+                return 1;
+            }
+        });
     }
 
     public static int[] getTodayDate() {
-        return getDateFromToday(0);
-    }
-
-    public static int[] getDateFromToday(int add) {
         int[] todayDate = new int[3];
 
         Calendar calendar = Calendar.getInstance();
-        calendar.add(Calendar.DATE, add);
 
         todayDate[0] = calendar.get(Calendar.YEAR);
         todayDate[1] = calendar.get(Calendar.MONTH) + 1;
         todayDate[2] = calendar.get(Calendar.DATE);
 
         return todayDate;
+    }
+
+    public static int[] addDate(int[] date, int add) {
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(date[0], date[1] - 1, date[2]);
+        calendar.add(Calendar.DATE, add);
+
+        int[] newDate = new int[3];
+        newDate[0] = calendar.get(Calendar.YEAR);
+        newDate[1] = calendar.get(Calendar.MONTH) + 1;
+        newDate[2] = calendar.get(Calendar.DATE);
+
+        return newDate;
     }
 
     public static boolean isDateAfter(int[] thisDate, int[] date, boolean canEqual) {
