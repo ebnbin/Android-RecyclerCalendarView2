@@ -5,7 +5,7 @@
     android:layout_height="@dimen/height_month"
     android:orientation="vertical">
     <include
-        layout="@layout/item_divider"/>
+        layout="@layout/recycler_calendar_item_divider"/>
     <TextView
         android:id="@+id/month"
         android:layout_width="match_parent"

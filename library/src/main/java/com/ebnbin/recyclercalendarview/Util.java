@@ -148,6 +148,14 @@ final class Util {
     }
 
     /**
+     * 返回日期是否有效.
+     */
+    public static boolean isDateValid(int[] date) {
+        return isDateBetween(date, new int[]{getInstance().year_from, getInstance().month_from, 1}, getTodayDate(),
+                true, true);
+    }
+
+    /**
      * 返回某月的最后一个星期日的日期.
      */
     public static int getLastSundayOfMonth(int daysOfMonth, int weekOfFirstDayOfMonth) {
@@ -231,12 +239,12 @@ final class Util {
     }
 
     /**
-     * 读取 festival.json 文件并返回节日 map.
+     * 读取 recycler_calendar_festival.json 文件并返回节日 map.
      */
     private Map<Integer, Map<Integer, Map<Integer, String>>> getFestivals(Context context) {
         StringBuilder stringBuilder = new StringBuilder();
         try {
-            InputStream is = context.getResources().openRawResource(R.raw.festival);
+            InputStream is = context.getResources().openRawResource(R.raw.recycler_calendar_festival);
             BufferedReader br;
             br = new BufferedReader(new InputStreamReader(is));
             String string;

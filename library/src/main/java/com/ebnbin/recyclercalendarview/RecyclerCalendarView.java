@@ -7,7 +7,6 @@ import android.support.annotation.Nullable;
 import android.support.v7.widget.GridLayoutManager;
 import android.util.AttributeSet;
 import android.widget.FrameLayout;
-import android.widget.Toast;
 
 /**
  * 列表日历 view.
@@ -39,7 +38,7 @@ public class RecyclerCalendarView extends FrameLayout {
 
         mTodayDate = Util.getTodayDate();
 
-        inflate(getContext(), R.layout.view_recycler_calendar, this);
+        inflate(getContext(), R.layout.recycler_calendar_view, this);
 
         mCalendarRecyclerView = (PinnedHeaderRecyclerView) findViewById(R.id.calendar);
 
@@ -57,7 +56,7 @@ public class RecyclerCalendarView extends FrameLayout {
         });
         mCalendarRecyclerView.setAdapter(mCalendarAdapter);
 
-        mCalendarRecyclerView.setPinnedHeaderView(R.layout.item_month);
+        mCalendarRecyclerView.setPinnedHeaderView(R.layout.recycler_calendar_item_month);
 
         setDoubleSelectedMode(false);
         scrollToSelected();
@@ -100,7 +99,9 @@ public class RecyclerCalendarView extends FrameLayout {
     public void setDoubleSelectedMode(int[] date) {
         setDoubleSelectedMode(false, false);
 
-        clickPosition(getPosition(date), true, false);
+        if (Util.isDateValid(date)) {
+            clickPosition(getPosition(date), true, false);
+        }
     }
 
     /**
@@ -109,8 +110,10 @@ public class RecyclerCalendarView extends FrameLayout {
     public void setDoubleSelectedMode(int[] dateFrom, int[] dateTo) {
         setDoubleSelectedMode(true, false);
 
-        clickPosition(getPosition(dateFrom), false, false);
-        clickPosition(getPosition(dateTo), true, false);
+        if (Util.isDateValid(dateFrom) && Util.isDateValid(dateTo)) {
+            clickPosition(getPosition(dateFrom), false, false);
+            clickPosition(getPosition(dateTo), true, false);
+        }
     }
 
     private void setDoubleSelectedMode(boolean doubleSelectedMode, boolean notifyDataSetChanged) {
@@ -144,6 +147,10 @@ public class RecyclerCalendarView extends FrameLayout {
 
         if (notifyDataSetChanged) {
             mCalendarAdapter.notifyDataSetChanged();
+
+            // React Native 渲染问题.
+            mCalendarRecyclerView.scrollBy(0, 1);
+            mCalendarRecyclerView.scrollBy(0, -1);
         }
     }
 
@@ -199,6 +206,10 @@ public class RecyclerCalendarView extends FrameLayout {
 
         if (notifyDataSetChanged) {
             mCalendarAdapter.notifyDataSetChanged();
+
+            // React Native 渲染问题.
+            mCalendarRecyclerView.scrollBy(0, 1);
+            mCalendarRecyclerView.scrollBy(0, -1);
         }
     }
 
@@ -386,44 +397,95 @@ public class RecyclerCalendarView extends FrameLayout {
     //*****************************************************************************************************************
     // 回调.
 
+    public Listener listener;
+
     /**
      * 单选回调.
      */
     private void onSingleSelected(int position) {
-        CalendarEntity calendarEntity = mCalendarAdapter.getCalendarEntity(position);
-        Toast.makeText(getContext(), Util.getDateString(calendarEntity.date), Toast.LENGTH_SHORT).show();
+//        CalendarEntity calendarEntity = mCalendarAdapter.getCalendarEntity(position);
+//        Toast.makeText(getContext(), Util.getDateString(calendarEntity.date), Toast.LENGTH_SHORT).show();
+        if (listener != null) {
+            listener.onSingleSelected(mCalendarAdapter.getCalendarEntity(position).date);
+        }
     }
 
     /**
      * 双选回调.
      */
     private void onDoubleSelected(int positionFrom, int positionTo, int dayCount) {
-        CalendarEntity calendarEntityFrom = mCalendarAdapter.getCalendarEntity(positionFrom);
-        CalendarEntity calendarEntityTo = mCalendarAdapter.getCalendarEntity(positionTo);
-        Toast.makeText(getContext(), Util.getDateString(calendarEntityFrom.date) + "~" +
-                Util.getDateString(calendarEntityTo.date) + "," + dayCount, Toast.LENGTH_SHORT).show();
+//        CalendarEntity calendarEntityFrom = mCalendarAdapter.getCalendarEntity(positionFrom);
+//        CalendarEntity calendarEntityTo = mCalendarAdapter.getCalendarEntity(positionTo);
+//        Toast.makeText(getContext(), Util.getDateString(calendarEntityFrom.date) + "~" +
+//                Util.getDateString(calendarEntityTo.date) + "," + dayCount, Toast.LENGTH_SHORT).show();
+
+        if (listener != null) {
+            listener.onDoubleSelected(mCalendarAdapter.getCalendarEntity(positionFrom).date,
+                    mCalendarAdapter.getCalendarEntity(positionTo).date, dayCount);
+        }
     }
 
     /**
      * 双选选中第一个日期回调.
      */
     private void onDoubleFirstSelected(int position) {
-        CalendarEntity calendarEntity = mCalendarAdapter.getCalendarEntity(position);
-        Toast.makeText(getContext(), "已选中:" + Util.getDateString(calendarEntity.date), Toast.LENGTH_SHORT).show();
+//        CalendarEntity calendarEntity = mCalendarAdapter.getCalendarEntity(position);
+//        Toast.makeText(getContext(), "已选中:" + Util.getDateString(calendarEntity.date), Toast.LENGTH_SHORT).show();
+
+        if (listener != null) {
+            listener.onDoubleFirstSelected(mCalendarAdapter.getCalendarEntity(position).date);
+        }
     }
 
     /**
      * 双选取消第一个日期回调.
      */
     private void onDoubleFirstUnselected(int position) {
-        CalendarEntity calendarEntity = mCalendarAdapter.getCalendarEntity(position);
-        Toast.makeText(getContext(), "已取消:" + Util.getDateString(calendarEntity.date), Toast.LENGTH_SHORT).show();
+//        CalendarEntity calendarEntity = mCalendarAdapter.getCalendarEntity(position);
+//        Toast.makeText(getContext(), "已取消:" + Util.getDateString(calendarEntity.date), Toast.LENGTH_SHORT).show();
+
+        if (listener != null) {
+            listener.onDoubleFirstUnselected(mCalendarAdapter.getCalendarEntity(position).date);
+        }
     }
 
     /**
      * 超过最大双选天数回调.
      */
     private void onExceedMaxDoubleSelectedCount(int dayCount) {
-        Toast.makeText(getContext(), "" + dayCount, Toast.LENGTH_SHORT).show();
+//        Toast.makeText(getContext(), "" + dayCount, Toast.LENGTH_SHORT).show();
+
+        if (listener != null) {
+            listener.onExceedMaxDoubleSelectedCount(dayCount);
+        }
+    }
+
+    public static abstract class Listener {
+        public void onSingleSelected(int[] date) {
+        }
+
+        /**
+         * 双选回调.
+         */
+        public void onDoubleSelected(int[] dateFrom, int[] dateTo, int dayCount) {
+        }
+
+        /**
+         * 双选选中第一个日期回调.
+         */
+        public void onDoubleFirstSelected(int[] date) {
+        }
+
+        /**
+         * 双选取消第一个日期回调.
+         */
+        public void onDoubleFirstUnselected(int[] date) {
+        }
+
+        /**
+         * 超过最大双选天数回调.
+         */
+        public void onExceedMaxDoubleSelectedCount(int dayCount) {
+        }
     }
 }

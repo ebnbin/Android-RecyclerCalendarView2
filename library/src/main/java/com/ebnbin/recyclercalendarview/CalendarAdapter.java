@@ -51,16 +51,19 @@ final class CalendarAdapter extends RecyclerView.Adapter implements PinnedHeader
     public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         switch (viewType) {
             case CalendarEntity.ITEM_TYPE_MONTH: {
-                return new MonthViewHolder(mLayoutInflater.inflate(R.layout.item_month, parent, false));
+                return new MonthViewHolder(mLayoutInflater.inflate(R.layout.recycler_calendar_item_month, parent,
+                        false));
             }
             case CalendarEntity.ITEM_TYPE_DAY: {
-                return new DayViewHolder(mLayoutInflater.inflate(R.layout.item_day, parent, false));
+                return new DayViewHolder(mLayoutInflater.inflate(R.layout.recycler_calendar_item_day, parent, false));
             }
             case CalendarEntity.ITEM_TYPE_EMPTY_DAY: {
-                return new EmptyDayViewHolder(mLayoutInflater.inflate(R.layout.item_empty_day, parent, false));
+                return new EmptyDayViewHolder(mLayoutInflater.inflate(R.layout.recycler_calendar_item_empty_day,
+                        parent, false));
             }
             case CalendarEntity.ITEM_TYPE_DIVIDER: {
-                return new DividerViewHolder(mLayoutInflater.inflate(R.layout.item_divider, parent, false));
+                return new DividerViewHolder(mLayoutInflater.inflate(R.layout.recycler_calendar_item_divider,
+                        parent, false));
             }
             default: {
                 return null;
