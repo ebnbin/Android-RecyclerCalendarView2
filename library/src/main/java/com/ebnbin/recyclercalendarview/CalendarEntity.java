@@ -13,18 +13,16 @@ final class CalendarEntity {
     /**
      * 返回一个日历数据.
      */
-    public static List<CalendarEntity> newCalendarData(boolean doubleSelectedMode, int[] todayDate) {
+    public static List<CalendarEntity> newCalendarData(boolean doubleSelectedMode) {
         List<CalendarEntity> calendarData = new ArrayList<>();
 
-        int[] specialDateBefore = Util.addDate(todayDate, doubleSelectedMode ? 0 : Util.getInstance().special_count);
-
+        int[] specialDateBefore = Util.addDate(Util.getTodayDate(),
+                doubleSelectedMode ? 0 : Util.getInstance().special_count);
         int yearTo = specialDateBefore[0];
         int monthTo = specialDateBefore[1];
 
-        Map<Integer, Map<Integer, Map<Integer, String>>> festivals = Util.getInstance().festivals;
-
-        int week = Util.getWeek(new int[]{Util.getInstance().year_from, Util.getInstance().month_from, 1});
-        int weekOfFirstDayOfMonth = week;
+        int weekOfFirstDayOfMonth = Util.getWeek(
+                new int[]{Util.getInstance().year_from, Util.getInstance().month_from, 1});
 
         for (int year = Util.getInstance().year_from; year <= yearTo; year++) {
             for (int month = 1; month <= 12; month++) {
@@ -33,31 +31,25 @@ final class CalendarEntity {
                     continue;
                 }
 
-                CalendarEntity monthCalendarEntity = new CalendarEntity(year, month, ITEM_TYPE_MONTH);
-                calendarData.add(monthCalendarEntity);
+                calendarData.add(new CalendarEntity(ITEM_TYPE_MONTH, doubleSelectedMode, new int[]{year, month, 0}));
 
                 for (int emptyDay = 0; emptyDay < weekOfFirstDayOfMonth; emptyDay++) {
-                    CalendarEntity emptyDayCalendarEntity = new CalendarEntity(year, month, ITEM_TYPE_EMPTY_DAY);
-                    calendarData.add(emptyDayCalendarEntity);
+                    calendarData.add(new CalendarEntity(ITEM_TYPE_EMPTY_DAY, doubleSelectedMode,
+                            new int[]{year, month, 0}));
                 }
 
                 int daysOfMonth = Util.getDaysOfMonth(year, month);
-                int lastSundayOfMonth = Util.getLastSundayOfMonth(daysOfMonth, weekOfFirstDayOfMonth);
 
                 for (int day = 1; day <= daysOfMonth; day++) {
-                    CalendarEntity dayCalendarEntity = new CalendarEntity(new int[]{year, month, day}, todayDate,
-                            specialDateBefore, festivals, week, lastSundayOfMonth, doubleSelectedMode);
-                    calendarData.add(dayCalendarEntity);
-
-                    week = Util.addWeek(week, 1);
+                    calendarData.add(new CalendarEntity(ITEM_TYPE_DAY, doubleSelectedMode,
+                            new int[]{year, month, day}));
                 }
 
                 weekOfFirstDayOfMonth = Util.addWeek(weekOfFirstDayOfMonth, daysOfMonth);
             }
         }
 
-        CalendarEntity dividerCalendarEntity = new CalendarEntity();
-        calendarData.add(dividerCalendarEntity);
+        calendarData.add(new CalendarEntity(ITEM_TYPE_DIVIDER, doubleSelectedMode, new int[3]));
 
         return calendarData;
     }
@@ -101,143 +93,146 @@ final class CalendarEntity {
     public final int itemType;
 
     /**
+     * 如果为 true 则为双选模式, 否则为单选模式.
+     */
+    public final boolean doubleSelectedMode;
+
+    /**
      * 日期.
      */
     public final int[] date;
 
     /**
-     * 特殊.
+     * 选中类型
      */
-    public final String special;
+    public int selectedType;
+
+    private CalendarEntity(int itemType, boolean doubleSelectedMode, int[] date) {
+        this.itemType = itemType;
+        this.doubleSelectedMode = doubleSelectedMode;
+        this.date = date;
+
+        selectedType = this.doubleSelectedMode || !isToday() ? SELECTED_TYPE_UNSELECTED : SELECTED_TYPE_SELECTED;
+    }
+
     /**
      * 节日.
      */
-    public final String festival;
+    public String getFestival() {
+        if (itemType != ITEM_TYPE_DAY) {
+            return null;
+        }
+
+        String festival = null;
+        Map<Integer, Map<Integer, Map<Integer, String>>> festivals = Util.getInstance().festivals;
+        if (festivals.get(date[0]) != null && festivals.get(date[0]).get(date[1]) != null) {
+            festival = festivals.get(date[0]).get(date[1]).get(date[2]);
+        }
+        return festival;
+    }
 
     /**
      * 星期.
      */
-    public final int week;
+    public int getWeek() {
+        if (itemType != ITEM_TYPE_DAY) {
+            return -1;
+        }
+
+        return Util.getWeek(date);
+    }
 
     /**
      * 是否为今天.
      */
-    public final boolean isToday;
+    public boolean isToday() {
+        if (itemType != ITEM_TYPE_DAY) {
+            return false;
+        }
+
+        return Util.isDateEqual(date, Util.getTodayDate());
+    }
+
     /**
      * 是否为现在.
      */
-    public final boolean isPresent;
-    /**
-     * 是否为特殊.
-     */
-    public final boolean isSpecial;
+    public boolean isPresent() {
+        if (itemType != ITEM_TYPE_DAY) {
+            return false;
+        }
+
+        return Util.isDateBefore(date, Util.getTodayDate(), true);
+    }
+
     /**
      * 是否为可用.
      */
-    public final boolean isEnabled;
-    /**
-     * 是否为节日.
-     */
-    public final boolean isFestival;
+    public boolean isEnabled() {
+        if (itemType != ITEM_TYPE_DAY) {
+            return false;
+        }
+
+        return isPresent() || !TextUtils.isEmpty(getSpecialString());
+    }
+
     /**
      * 是否为周末.
      */
-    public final boolean isWeekend;
+    public boolean isWeekend() {
+        if (itemType != ITEM_TYPE_DAY) {
+            return false;
+        }
+
+        int week = getWeek();
+        return week == 0 || week == 6;
+    }
 
     /**
      * 是否为当前月的最后一个星期日.
      */
-    public final boolean isLastSundayOfMonth;
+    public boolean isLastSundayOfMonth() {
+        if (itemType != ITEM_TYPE_DAY) {
+            return false;
+        }
+
+        return date[2] == Util.getLastSundayOfMonth(date[0], date[1]);
+    }
 
     /**
      * 月字符串.
      */
-    public final String monthString;
+    public String getMonthString() {
+        if (itemType != ITEM_TYPE_MONTH && itemType != ITEM_TYPE_DAY && itemType != ITEM_TYPE_EMPTY_DAY) {
+            return null;
+        }
+
+        return String.format(Util.getInstance().format_month, date[0], date[1]);
+    }
+
     /**
      * 日字符串.
      */
-    public final String dayString;
+    public String getDayString() {
+        if (itemType != ITEM_TYPE_DAY) {
+            return null;
+        }
+
+        String festival = getFestival();
+        return isToday() ? Util.getInstance().today
+                : !TextUtils.isEmpty(festival) ? festival : String.valueOf(date[2]);
+    }
+
     /**
      * 特殊字符串.
      */
-    public final String specialString;
-
-    /**
-     * 选中类型.
-     */
-    public int selectedType;
-
-    /**
-     * 创建月类型或空白日类型的对象.
-     */
-    private CalendarEntity(int year, int month, int itemType) {
-        this.itemType = itemType;
-        this.date = new int[]{year, month, 0};
-        this.special = null;
-        this.festival = null;
-        this.week = -1;
-        this.isToday = false;
-        this.isPresent = false;
-        this.isSpecial = false;
-        this.isEnabled = false;
-        this.isFestival = false;
-        this.isWeekend = false;
-        this.isLastSundayOfMonth = false;
-        this.monthString = String.format(Util.getInstance().format_month, year, month);
-        this.dayString = null;
-        this.specialString = null;
-        this.selectedType = SELECTED_TYPE_UNSELECTED;
-    }
-
-    /**
-     * 创建日类型的对象.
-     */
-    private CalendarEntity(int[] date, int[] todayDate, int[] specialDateBefore,
-            Map<Integer, Map<Integer, Map<Integer, String>>> festivals, int week, int lastSundayOfMonth,
-            boolean doubleSelectedMode) {
-        String festival = null;
-        if (festivals.get(date[0]) != null && festivals.get(date[0]).get(date[1]) != null) {
-            festival = festivals.get(date[0]).get(date[1]).get(date[2]);
+    public String getSpecialString() {
+        if (itemType != ITEM_TYPE_DAY) {
+            return null;
         }
 
-        this.itemType = ITEM_TYPE_DAY;
-        this.date = date;
-        this.special = Util.getInstance().special;
-        this.festival = festival;
-        this.week = week;
-        this.isToday = Util.isDateEqual(date, todayDate);
-        this.isPresent = Util.isDateBefore(date, todayDate, true);
-        this.isSpecial = Util.isDateBetween(date, todayDate, specialDateBefore, false, true);
-        this.isEnabled = isPresent || isSpecial;
-        this.isFestival = !TextUtils.isEmpty(festival);
-        this.isWeekend = week == 0 || week == 6;
-        this.isLastSundayOfMonth = date[2] == lastSundayOfMonth;
-        this.monthString = String.format(Util.getInstance().format_month, date[0], date[1]);
-        this.dayString = isToday ? Util.getInstance().today : isFestival ? festival : String.valueOf(date[2]);
-        this.specialString = isSpecial ? TextUtils.isEmpty(special) ? "" : special : null;
-        this.selectedType = doubleSelectedMode || !isToday ? SELECTED_TYPE_UNSELECTED : SELECTED_TYPE_SELECTED;
-    }
-
-    /**
-     * 创建分隔线类型的对象.
-     */
-    private CalendarEntity() {
-        this.itemType = ITEM_TYPE_DIVIDER;
-        this.date = null;
-        this.special = null;
-        this.festival = null;
-        this.week = -1;
-        this.isToday = false;
-        this.isPresent = false;
-        this.isSpecial = false;
-        this.isEnabled = false;
-        this.isFestival = false;
-        this.isWeekend = false;
-        this.isLastSundayOfMonth = false;
-        this.monthString = null;
-        this.dayString = null;
-        this.specialString = null;
-        this.selectedType = SELECTED_TYPE_UNSELECTED;
+        int[] todayDate = Util.getTodayDate();
+        int[] specialDateBefore = Util.addDate(todayDate, doubleSelectedMode ? 0 : Util.getInstance().special_count);
+        return Util.isDateBetween(date, todayDate, specialDateBefore, false, true) ? Util.getInstance().special : "";
     }
 
     /**
@@ -250,7 +245,7 @@ final class CalendarEntity {
         }
 
         // 不可用.
-        if (!isEnabled) {
+        if (!isEnabled()) {
             return Util.getInstance().text_disabled;
         }
 
@@ -260,22 +255,22 @@ final class CalendarEntity {
         }
 
         // 今天.
-        if (isToday) {
+        if (isToday()) {
             return Util.getInstance().text_today;
         }
 
         // 特殊.
-        if (isSpecial) {
+        if (!TextUtils.isEmpty(getSpecialString())) {
             return Util.getInstance().text_special;
         }
 
         // 节日.
-        if (isFestival) {
+        if (!TextUtils.isEmpty(getFestival())) {
             return Util.getInstance().text_festival;
         }
 
         // 周末.
-        if (isWeekend) {
+        if (isWeekend()) {
             return Util.getInstance().text_weekend;
         }
 
@@ -293,7 +288,7 @@ final class CalendarEntity {
         }
 
         // 不可用.
-        if (!isEnabled) {
+        if (!isEnabled()) {
             return Util.getInstance().background_disabled;
         }
 

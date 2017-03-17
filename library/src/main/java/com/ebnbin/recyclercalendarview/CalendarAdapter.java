@@ -81,28 +81,28 @@ final class CalendarAdapter extends RecyclerView.Adapter implements PinnedHeader
             case CalendarEntity.ITEM_TYPE_MONTH: {
                 MonthViewHolder monthViewHolder = (MonthViewHolder) holder;
 
-                monthViewHolder.monthTextView.setText(calendarEntity.monthString);
+                monthViewHolder.monthTextView.setText(calendarEntity.getMonthString());
 
                 break;
             }
             case CalendarEntity.ITEM_TYPE_DAY: {
                 DayViewHolder dayViewHolder = (DayViewHolder) holder;
 
-                dayViewHolder.itemView.setEnabled(calendarEntity.isEnabled);
+                dayViewHolder.itemView.setEnabled(calendarEntity.isEnabled());
                 dayViewHolder.itemView.setBackgroundColor(calendarEntity.getBackgroundColor());
                 dayViewHolder.itemView.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        if (mOnDayClickListener != null && calendarEntity.isEnabled) {
+                        if (mOnDayClickListener != null && calendarEntity.isEnabled()) {
                             mOnDayClickListener.onDayClick(layoutPosition);
                         }
                     }
                 });
 
-                dayViewHolder.dayTextView.setText(calendarEntity.dayString);
+                dayViewHolder.dayTextView.setText(calendarEntity.getDayString());
                 dayViewHolder.dayTextView.setTextColor(calendarEntity.getTextColor());
 
-                dayViewHolder.specialTextView.setText(calendarEntity.specialString);
+                dayViewHolder.specialTextView.setText(calendarEntity.getSpecialString());
                 dayViewHolder.specialTextView.setTextColor(calendarEntity.getTextColor());
 
                 break;
@@ -149,7 +149,7 @@ final class CalendarAdapter extends RecyclerView.Adapter implements PinnedHeader
 
     @Override
     public int getPinnedHeaderState(int position) {
-        return getCalendarEntity(position).isLastSundayOfMonth
+        return getCalendarEntity(position).isLastSundayOfMonth()
                 ? PinnedHeaderRecyclerView.PinnedHeaderAdapter.STATE_PUSHABLE
                 : PinnedHeaderRecyclerView.PinnedHeaderAdapter.STATE_VISIBLE;
     }
@@ -157,7 +157,7 @@ final class CalendarAdapter extends RecyclerView.Adapter implements PinnedHeader
     @Override
     public void configurePinnedHeader(View pinnedHeaderView, int position) {
         TextView yearMonthTextView = (TextView) pinnedHeaderView.findViewById(R.id.month);
-        yearMonthTextView.setText(getCalendarEntity(position).monthString);
+        yearMonthTextView.setText(getCalendarEntity(position).getMonthString());
     }
 
     //*****************************************************************************************************************

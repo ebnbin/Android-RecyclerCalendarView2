@@ -24,41 +24,12 @@ final class Util {
     private static final int[] DAYS_OF_MONTHS = new int[]{31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
 
     /**
-     * 1970 年 1 月 1 日的星期.
-     */
-    private static final int WEEK_OF_19700101 = 4;
-
-    /**
      * 返回某日期的星期.
      */
     public static int getWeek(int[] date) {
-        return (getDaysFrom19700101(date) + WEEK_OF_19700101) % 7;
-    }
-
-    /**
-     * 返回某年某月某日距离 1970 年 1 月 1 日的天数.
-     */
-    private static int getDaysFrom19700101(int[] date) {
-        int days = 0;
-
-        for (int i = 1970; i < date[0]; i++) {
-            days += getDaysOfYear(i);
-        }
-
-        for (int i = 1; i < date[1]; i++) {
-            days += getDaysOfMonth(date[0], i);
-        }
-
-        days += date[2] - 1;
-
-        return days;
-    }
-
-    /**
-     * 返回某年的天数.
-     */
-    private static int getDaysOfYear(int year) {
-        return isLeapYear(year) ? 366 : 365;
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(date[0], date[1] - 1, date[2]);
+        return calendar.get(Calendar.DAY_OF_WEEK) - 1;
     }
 
     /**
@@ -158,7 +129,9 @@ final class Util {
     /**
      * 返回某月的最后一个星期日的日期.
      */
-    public static int getLastSundayOfMonth(int daysOfMonth, int weekOfFirstDayOfMonth) {
+    public static int getLastSundayOfMonth(int year, int month) {
+        int daysOfMonth = getDaysOfMonth(year, month);
+        int weekOfFirstDayOfMonth = getWeek(new int[]{year, month, 1});
         return (daysOfMonth + weekOfFirstDayOfMonth - 1) / 7 * 7 - weekOfFirstDayOfMonth + 1;
     }
 

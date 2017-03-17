@@ -12,11 +12,6 @@ import android.widget.FrameLayout;
  * 列表日历 view.
  */
 public class RecyclerCalendarView extends FrameLayout {
-    /**
-     * 今天日期.
-     */
-    private int[] mTodayDate;
-
     private PinnedHeaderRecyclerView mCalendarRecyclerView;
 
     private GridLayoutManager mCalendarLayoutManager;
@@ -35,8 +30,6 @@ public class RecyclerCalendarView extends FrameLayout {
         super(context, attrs, defStyleAttr);
 
         Util.init(getContext());
-
-        mTodayDate = Util.getTodayDate();
 
         inflate(getContext(), R.layout.recycler_calendar_view, this);
 
@@ -124,7 +117,7 @@ public class RecyclerCalendarView extends FrameLayout {
         }
 
         if (mCalendarAdapter.getCalendarData().isEmpty()) {
-            mCalendarAdapter.setCalendarData(CalendarEntity.newCalendarData(mDoubleSelectedMode, mTodayDate));
+            mCalendarAdapter.setCalendarData(CalendarEntity.newCalendarData(mDoubleSelectedMode));
         }
 
         resetSelected(notifyDataSetChanged);
@@ -142,7 +135,7 @@ public class RecyclerCalendarView extends FrameLayout {
             unselectPositionAB();
         } else {
             selectPositionB(-1);
-            selectPositionA(getPosition(mTodayDate));
+            selectPositionA(getPosition(Util.getTodayDate()));
         }
 
         if (notifyDataSetChanged) {
@@ -358,7 +351,7 @@ public class RecyclerCalendarView extends FrameLayout {
      * 滚动到今天.
      */
     public void scrollToToday() {
-        scrollToPosition(getPosition(mTodayDate));
+        scrollToPosition(getPosition(Util.getTodayDate()));
     }
 
     /**
