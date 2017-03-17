@@ -46,7 +46,7 @@ public class RecyclerCalendarView extends FrameLayout {
         mCalendarLayoutManager = new GridLayoutManager(getContext(), 7);
         mCalendarRecyclerView.setLayoutManager(mCalendarLayoutManager);
 
-        mCalendarAdapter = new CalendarAdapter(getContext());
+        mCalendarAdapter = new CalendarAdapter();
         mCalendarAdapter.setOnDayClickListener(new CalendarAdapter.OnDayClickListener() {
             @Override
             void onDayClick(int position) {
@@ -90,10 +90,7 @@ public class RecyclerCalendarView extends FrameLayout {
 
     private void setDoubleSelectedMode(boolean notifyDataSetChanged, int yearFrom, int monthFrom, int yearTo,
             int monthTo) {
-        mCalendarAdapter.setCalendarData(null);
-
-        mCalendarAdapter.setCalendarData(CalendarEntity.newCalendarData(mTodayDate, yearFrom, monthFrom, yearTo,
-                monthTo));
+        mCalendarAdapter.setNewData(Util.newCalendarData(mTodayDate, yearFrom, monthFrom, yearTo, monthTo));
 
         resetSelected(notifyDataSetChanged);
     }
@@ -156,9 +153,9 @@ public class RecyclerCalendarView extends FrameLayout {
      * 设置位置的选中状态.
      */
     private void setPositionSelected(int position, boolean selected) {
-        CalendarEntity calendarEntity = mCalendarAdapter.getCalendarData().get(position);
-        if (calendarEntity.itemType == CalendarEntity.ITEM_TYPE_DAY) {
-            calendarEntity.selected = selected;
+        CalendarEntity calendarEntity = mCalendarAdapter.getItem(position);
+        if (calendarEntity.getItemType() == CalendarEntity.ITEM_TYPE_DAY) {
+            ((CalendarDayEntity) calendarEntity).selected = selected;
         }
     }
 
@@ -166,10 +163,10 @@ public class RecyclerCalendarView extends FrameLayout {
      * 返回指定日期的位置, 如果没找到则返回 -1.
      */
     private int getPosition(int[] date) {
-        for (int position = 0; position < mCalendarAdapter.getCalendarData().size(); position++) {
-            CalendarEntity calendarEntity = mCalendarAdapter.getCalendarData().get(position);
-            if (calendarEntity.itemType == CalendarEntity.ITEM_TYPE_DAY
-                    && Util.isDateEqual(calendarEntity.date, date)) {
+        for (int position = 0; position < mCalendarAdapter.getItemCount(); position++) {
+            CalendarEntity calendarEntity = mCalendarAdapter.getItem(position);
+            if (calendarEntity.getItemType() == CalendarEntity.ITEM_TYPE_DAY
+                    && Util.isDateEqual(((CalendarDayEntity) calendarEntity).date, date)) {
                 return position;
             }
         }
@@ -233,7 +230,8 @@ public class RecyclerCalendarView extends FrameLayout {
      * 单选回调.
      */
     private void onSingleSelected(int position) {
-        CalendarEntity calendarEntity = mCalendarAdapter.getCalendarEntity(position);
-        Toast.makeText(getContext(), Util.getDateString(calendarEntity.date), Toast.LENGTH_SHORT).show();
+        CalendarEntity calendarEntity = mCalendarAdapter.getItem(position);
+        Toast.makeText(getContext(), Util.getDateString(((CalendarDayEntity) calendarEntity).date), Toast.LENGTH_SHORT)
+                .show();
     }
 }

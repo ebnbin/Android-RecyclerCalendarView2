@@ -16,6 +16,8 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
 
         mRecyclerCalendarView = new RecyclerCalendarView(this);
+        mRecyclerCalendarView.setDoubleSelectedMode(2015, 5, 2017, 3);
+        mRecyclerCalendarView.scrollToSelected();
 
         setContentView(mRecyclerCalendarView);
     }

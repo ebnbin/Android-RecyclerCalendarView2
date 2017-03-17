@@ -2,7 +2,9 @@ package com.ebnbin.recyclercalendarview;
 
 import android.content.Context;
 
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 
 /**
  * 工具类.
@@ -104,6 +106,52 @@ final class Util {
      */
     public static String getDateString(int[] date) {
         return String.format(getInstance().format_date, date[0], date[1], date[2]);
+    }
+
+    //*****************************************************************************************************************
+    // CalendarEntity.
+
+    /**
+     * 返回一个日历数据.
+     */
+    public static List<CalendarEntity> newCalendarData(int[] todayDate, int yearFrom, int monthFrom, int yearTo,
+            int monthTo) {
+        List<CalendarEntity> calendarData = new ArrayList<>();
+
+        int weekOfFirstDayOfMonth = Util.getWeek(new int[]{yearFrom, monthFrom,
+                1});
+
+        for (int year = yearFrom; year <= yearTo; year++) {
+            for (int month = 1; month <= 12; month++) {
+                if (year == yearFrom && month < monthFrom || year == yearTo && month > monthTo) {
+                    continue;
+                }
+
+                CalendarEntity monthCalendarEntity = new CalendarMonthEntity(year, month);
+                calendarData.add(monthCalendarEntity);
+
+                for (int emptyDay = 0; emptyDay < weekOfFirstDayOfMonth; emptyDay++) {
+                    CalendarEntity emptyDayCalendarEntity = new CalendarEmptyDayEntity(year, month);
+                    calendarData.add(emptyDayCalendarEntity);
+                }
+
+                int daysOfMonth = Util.getDaysOfMonth(year, month);
+                int lastSundayOfMonth = Util.getLastSundayOfMonth(daysOfMonth, weekOfFirstDayOfMonth);
+
+                for (int day = 1; day <= daysOfMonth; day++) {
+                    CalendarEntity dayCalendarEntity = new CalendarDayEntity(new int[]{year, month, day}, todayDate,
+                            lastSundayOfMonth);
+                    calendarData.add(dayCalendarEntity);
+                }
+
+                weekOfFirstDayOfMonth = Util.addWeek(weekOfFirstDayOfMonth, daysOfMonth);
+            }
+        }
+
+        CalendarEntity dividerCalendarEntity = new CalendarDividerEntity();
+        calendarData.add(dividerCalendarEntity);
+
+        return calendarData;
     }
 
     //*****************************************************************************************************************
