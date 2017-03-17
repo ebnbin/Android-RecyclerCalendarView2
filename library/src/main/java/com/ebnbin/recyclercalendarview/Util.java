@@ -178,7 +178,6 @@ final class Util {
     public final int year_from;
     public final int month_from;
 
-    public final String today;
     public final String format_month;
     public final String format_date;
 
@@ -195,7 +194,6 @@ final class Util {
         year_from = context.getResources().getInteger(R.integer.year_from);
         month_from = context.getResources().getInteger(R.integer.month_from);
 
-        today = context.getString(R.string.today);
         format_month = context.getString(R.string.format_month);
         format_date = context.getString(R.string.format_date);
     }

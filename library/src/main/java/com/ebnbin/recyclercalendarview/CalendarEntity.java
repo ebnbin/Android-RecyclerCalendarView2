@@ -135,7 +135,7 @@ final class CalendarEntity {
         this.isEnabled = Util.isDateBefore(date, todayDate, true);
         this.isLastSundayOfMonth = date[2] == lastSundayOfMonth;
         this.monthString = String.format(Util.getInstance().format_month, date[0], date[1]);
-        this.dayString = isToday ? Util.getInstance().today : String.valueOf(date[2]);
+        this.dayString = String.valueOf(date[2]);
         this.selected = isToday;
     }
 
