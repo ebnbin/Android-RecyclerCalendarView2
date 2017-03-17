@@ -3,7 +3,6 @@ package com.ebnbin.recyclercalendarview;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
-import android.widget.TextView;
 
 import com.chad.library.adapter.base.BaseMultiItemQuickAdapter;
 import com.chad.library.adapter.base.BaseViewHolder;
@@ -11,8 +10,7 @@ import com.chad.library.adapter.base.BaseViewHolder;
 /**
  * 日历 adapter.
  */
-final class CalendarAdapter extends BaseMultiItemQuickAdapter<CalendarEntity, BaseViewHolder>
-        implements PinnedHeaderRecyclerView.PinnedHeaderAdapter {
+final class CalendarAdapter extends BaseMultiItemQuickAdapter<CalendarEntity, BaseViewHolder> {
     private OnDayClickListener mOnDayClickListener;
 
     CalendarAdapter() {
@@ -81,31 +79,6 @@ final class CalendarAdapter extends BaseMultiItemQuickAdapter<CalendarEntity, Ba
                 return 1;
             }
         });
-    }
-
-    @Override
-    public int getPinnedHeaderState(int position) {
-        int itemViewType = getItemViewType(position);
-        if (itemViewType != CalendarEntity.ITEM_TYPE_DAY) {
-            return PinnedHeaderRecyclerView.PinnedHeaderAdapter.STATE_VISIBLE;
-        }
-
-        return ((CalendarDayEntity) getItem(position)).isLastSundayOfMonth
-                ? PinnedHeaderRecyclerView.PinnedHeaderAdapter.STATE_PUSHABLE
-                : PinnedHeaderRecyclerView.PinnedHeaderAdapter.STATE_VISIBLE;
-    }
-
-    @Override
-    public void configurePinnedHeader(View pinnedHeaderView, int position) {
-        CalendarEntity calendarEntity = getItem(position);
-        if (!(calendarEntity instanceof CalendarYearMonthEntity)) {
-            return;
-        }
-
-        CalendarYearMonthEntity calendarYearMonthEntity = (CalendarYearMonthEntity) calendarEntity;
-
-        TextView yearMonthTextView = (TextView) pinnedHeaderView.findViewById(R.id.month);
-        yearMonthTextView.setText(calendarYearMonthEntity.getMonthString());
     }
 
     //*****************************************************************************************************************

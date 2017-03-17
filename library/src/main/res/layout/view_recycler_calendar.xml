@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/background_calendar">
-    <com.ebnbin.recyclercalendarview.PinnedHeaderRecyclerView
+    <android.support.v7.widget.RecyclerView
         android:id="@+id/calendar"
         android:layout_width="match_parent"
         android:layout_height="match_parent"

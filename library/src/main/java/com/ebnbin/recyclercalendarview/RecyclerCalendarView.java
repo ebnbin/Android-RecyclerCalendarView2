@@ -5,6 +5,7 @@ import android.support.annotation.AttrRes;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.GridLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.AttributeSet;
 import android.widget.FrameLayout;
 import android.widget.Toast;
@@ -18,7 +19,7 @@ public class RecyclerCalendarView extends FrameLayout {
      */
     private int[] mTodayDate;
 
-    private PinnedHeaderRecyclerView mCalendarRecyclerView;
+    private RecyclerView mCalendarRecyclerView;
 
     private GridLayoutManager mCalendarLayoutManager;
 
@@ -41,7 +42,7 @@ public class RecyclerCalendarView extends FrameLayout {
 
         inflate(getContext(), R.layout.view_recycler_calendar, this);
 
-        mCalendarRecyclerView = (PinnedHeaderRecyclerView) findViewById(R.id.calendar);
+        mCalendarRecyclerView = (RecyclerView) findViewById(R.id.calendar);
 
         mCalendarLayoutManager = new GridLayoutManager(getContext(), 7);
         mCalendarRecyclerView.setLayoutManager(mCalendarLayoutManager);
@@ -56,8 +57,6 @@ public class RecyclerCalendarView extends FrameLayout {
             }
         });
         mCalendarRecyclerView.setAdapter(mCalendarAdapter);
-
-        mCalendarRecyclerView.setPinnedHeaderView(R.layout.item_month);
 
         int[] todayDate = Util.getTodayDate();
         setDoubleSelectedMode(false, todayDate[0], todayDate[1], todayDate[0], todayDate[1]);
