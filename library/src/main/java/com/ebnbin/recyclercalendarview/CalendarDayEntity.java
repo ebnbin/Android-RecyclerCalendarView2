@@ -16,11 +16,6 @@ final class CalendarDayEntity implements CalendarYearMonthEntity {
     public final boolean isEnabled;
 
     /**
-     * 是否为当前月的最后一个星期日.
-     */
-    public final boolean isLastSundayOfMonth;
-
-    /**
      * 月字符串.
      */
     public final String monthString;
@@ -34,11 +29,10 @@ final class CalendarDayEntity implements CalendarYearMonthEntity {
      */
     public boolean selected;
 
-    CalendarDayEntity(int[] date, int[] todayDate, int lastSundayOfMonth) {
+    CalendarDayEntity(int[] date, int[] todayDate) {
         this.date = date;
         this.isToday = Util.isDateEqual(date, todayDate);
         this.isEnabled = Util.isDateBefore(date, todayDate, true);
-        this.isLastSundayOfMonth = date[2] == lastSundayOfMonth;
         this.monthString = String.format(Util.getInstance().format_month, date[0], date[1]);
         this.dayString = String.valueOf(date[2]);
         this.selected = isToday;

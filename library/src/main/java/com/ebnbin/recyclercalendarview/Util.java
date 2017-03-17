@@ -95,13 +95,6 @@ final class Util {
     }
 
     /**
-     * 返回某月的最后一个星期日的日期.
-     */
-    public static int getLastSundayOfMonth(int daysOfMonth, int weekOfFirstDayOfMonth) {
-        return (daysOfMonth + weekOfFirstDayOfMonth - 1) / 7 * 7 - weekOfFirstDayOfMonth + 1;
-    }
-
-    /**
      * 返回日期字符串.
      */
     public static String getDateString(int[] date) {
@@ -118,8 +111,7 @@ final class Util {
             int monthTo) {
         List<CalendarEntity> calendarData = new ArrayList<>();
 
-        int weekOfFirstDayOfMonth = Util.getWeek(new int[]{yearFrom, monthFrom,
-                1});
+        int weekOfFirstDayOfMonth = Util.getWeek(new int[]{yearFrom, monthFrom, 1});
 
         for (int year = yearFrom; year <= yearTo; year++) {
             for (int month = 1; month <= 12; month++) {
@@ -136,11 +128,9 @@ final class Util {
                 }
 
                 int daysOfMonth = Util.getDaysOfMonth(year, month);
-                int lastSundayOfMonth = Util.getLastSundayOfMonth(daysOfMonth, weekOfFirstDayOfMonth);
 
                 for (int day = 1; day <= daysOfMonth; day++) {
-                    CalendarEntity dayCalendarEntity = new CalendarDayEntity(new int[]{year, month, day}, todayDate,
-                            lastSundayOfMonth);
+                    CalendarEntity dayCalendarEntity = new CalendarDayEntity(new int[]{year, month, day}, todayDate);
                     calendarData.add(dayCalendarEntity);
                 }
 
