@@ -15,10 +15,8 @@ final class CalendarEntity {
     public static List<CalendarEntity> newCalendarData(boolean doubleSelectedMode, int[] todayDate) {
         List<CalendarEntity> calendarData = new ArrayList<>();
 
-        int[] specialDateBefore = Util.addDate(todayDate, doubleSelectedMode ? 0 : Util.getInstance().special_count);
-
-        int yearTo = specialDateBefore[0];
-        int monthTo = specialDateBefore[1];
+        int yearTo = todayDate[0];
+        int monthTo = todayDate[1];
 
         int week = Util.getWeek(new int[]{Util.getInstance().year_from, Util.getInstance().month_from, 1});
         int weekOfFirstDayOfMonth = week;
@@ -42,8 +40,8 @@ final class CalendarEntity {
                 int lastSundayOfMonth = Util.getLastSundayOfMonth(daysOfMonth, weekOfFirstDayOfMonth);
 
                 for (int day = 1; day <= daysOfMonth; day++) {
-                    CalendarEntity dayCalendarEntity = new CalendarEntity(new int[]{year, month, day}, todayDate,
-                            specialDateBefore, week, lastSundayOfMonth, doubleSelectedMode);
+                    CalendarEntity dayCalendarEntity = new CalendarEntity(new int[]{year, month, day}, todayDate, week,
+                            lastSundayOfMonth, doubleSelectedMode);
                     calendarData.add(dayCalendarEntity);
 
                     week = Util.addWeek(week, 1);
@@ -103,11 +101,6 @@ final class CalendarEntity {
     public final int[] date;
 
     /**
-     * 特殊.
-     */
-    public final String special;
-
-    /**
      * 星期.
      */
     public final int week;
@@ -120,10 +113,6 @@ final class CalendarEntity {
      * 是否为现在.
      */
     public final boolean isPresent;
-    /**
-     * 是否为特殊.
-     */
-    public final boolean isSpecial;
     /**
      * 是否为可用.
      */
@@ -146,10 +135,6 @@ final class CalendarEntity {
      * 日字符串.
      */
     public final String dayString;
-    /**
-     * 特殊字符串.
-     */
-    public final String specialString;
 
     /**
      * 选中类型.
@@ -162,39 +147,32 @@ final class CalendarEntity {
     private CalendarEntity(int year, int month, int itemType) {
         this.itemType = itemType;
         this.date = new int[]{year, month, 0};
-        this.special = null;
         this.week = -1;
         this.isToday = false;
         this.isPresent = false;
-        this.isSpecial = false;
         this.isEnabled = false;
         this.isWeekend = false;
         this.isLastSundayOfMonth = false;
         this.monthString = String.format(Util.getInstance().format_month, year, month);
         this.dayString = null;
-        this.specialString = null;
         this.selectedType = SELECTED_TYPE_UNSELECTED;
     }
 
     /**
      * 创建日类型的对象.
      */
-    private CalendarEntity(int[] date, int[] todayDate, int[] specialDateBefore, int week, int lastSundayOfMonth,
-            boolean doubleSelectedMode) {
+    private CalendarEntity(int[] date, int[] todayDate, int week, int lastSundayOfMonth, boolean doubleSelectedMode) {
 
         this.itemType = ITEM_TYPE_DAY;
         this.date = date;
-        this.special = Util.getInstance().special;
         this.week = week;
         this.isToday = Util.isDateEqual(date, todayDate);
         this.isPresent = Util.isDateBefore(date, todayDate, true);
-        this.isSpecial = Util.isDateBetween(date, todayDate, specialDateBefore, false, true);
-        this.isEnabled = isPresent || isSpecial;
+        this.isEnabled = isPresent;
         this.isWeekend = week == 0 || week == 6;
         this.isLastSundayOfMonth = date[2] == lastSundayOfMonth;
         this.monthString = String.format(Util.getInstance().format_month, date[0], date[1]);
         this.dayString = isToday ? Util.getInstance().today : String.valueOf(date[2]);
-        this.specialString = isSpecial ? TextUtils.isEmpty(special) ? "" : special : null;
         this.selectedType = doubleSelectedMode || !isToday ? SELECTED_TYPE_UNSELECTED : SELECTED_TYPE_SELECTED;
     }
 
@@ -204,17 +182,14 @@ final class CalendarEntity {
     private CalendarEntity() {
         this.itemType = ITEM_TYPE_DIVIDER;
         this.date = null;
-        this.special = null;
         this.week = -1;
         this.isToday = false;
         this.isPresent = false;
-        this.isSpecial = false;
         this.isEnabled = false;
         this.isWeekend = false;
         this.isLastSundayOfMonth = false;
         this.monthString = null;
         this.dayString = null;
-        this.specialString = null;
         this.selectedType = SELECTED_TYPE_UNSELECTED;
     }
 
@@ -240,11 +215,6 @@ final class CalendarEntity {
         // 今天.
         if (isToday) {
             return Util.getInstance().text_today;
-        }
-
-        // 特殊.
-        if (isSpecial) {
-            return Util.getInstance().text_special;
         }
 
         // 周末.

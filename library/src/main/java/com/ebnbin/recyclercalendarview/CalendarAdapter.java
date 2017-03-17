@@ -99,9 +99,6 @@ final class CalendarAdapter extends RecyclerView.Adapter implements PinnedHeader
                 dayViewHolder.dayTextView.setText(calendarEntity.dayString);
                 dayViewHolder.dayTextView.setTextColor(calendarEntity.getTextColor());
 
-                dayViewHolder.specialTextView.setText(calendarEntity.specialString);
-                dayViewHolder.specialTextView.setTextColor(calendarEntity.getTextColor());
-
                 break;
             }
         }
@@ -180,13 +177,11 @@ final class CalendarAdapter extends RecyclerView.Adapter implements PinnedHeader
 
     private static final class DayViewHolder extends RecyclerView.ViewHolder {
         public final TextView dayTextView;
-        public final TextView specialTextView;
 
         DayViewHolder(View itemView) {
             super(itemView);
 
             dayTextView = (TextView) itemView.findViewById(R.id.day);
-            specialTextView = (TextView) itemView.findViewById(R.id.special);
         }
     }
 

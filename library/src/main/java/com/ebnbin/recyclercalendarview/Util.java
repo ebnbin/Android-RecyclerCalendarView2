@@ -174,16 +174,13 @@ final class Util {
     public final int text_day;
     public final int text_selected;
     public final int text_today;
-    public final int text_special;
     public final int text_weekend;
     public final int text_disabled;
 
     public final int year_from;
     public final int month_from;
-    public final int special_count;
     public final int max_double_selected_count;
 
-    public final String special;
     public final String today;
     public final String format_month;
     public final String format_date;
@@ -197,16 +194,13 @@ final class Util {
         text_day = context.getResources().getColor(R.color.text_day);
         text_selected = context.getResources().getColor(R.color.text_selected);
         text_today = context.getResources().getColor(R.color.text_today);
-        text_special = context.getResources().getColor(R.color.text_special);
         text_weekend = context.getResources().getColor(R.color.text_weekend);
         text_disabled = context.getResources().getColor(R.color.text_disabled);
 
         year_from = context.getResources().getInteger(R.integer.year_from);
         month_from = context.getResources().getInteger(R.integer.month_from);
-        special_count = context.getResources().getInteger(R.integer.special_count);
         max_double_selected_count = context.getResources().getInteger(R.integer.max_double_selected_count);
 
-        special = context.getString(R.string.special);
         today = context.getString(R.string.today);
         format_month = context.getString(R.string.format_month);
         format_date = context.getString(R.string.format_date);
