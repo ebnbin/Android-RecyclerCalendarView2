@@ -1,7 +1,5 @@
 package com.ebnbin.recyclercalendarview;
 
-import android.text.TextUtils;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -12,7 +10,7 @@ final class CalendarEntity {
     /**
      * 返回一个日历数据.
      */
-    public static List<CalendarEntity> newCalendarData(boolean doubleSelectedMode, int[] todayDate) {
+    public static List<CalendarEntity> newCalendarData(int[] todayDate) {
         List<CalendarEntity> calendarData = new ArrayList<>();
 
         int yearTo = todayDate[0];
@@ -41,7 +39,7 @@ final class CalendarEntity {
 
                 for (int day = 1; day <= daysOfMonth; day++) {
                     CalendarEntity dayCalendarEntity = new CalendarEntity(new int[]{year, month, day}, todayDate, week,
-                            lastSundayOfMonth, doubleSelectedMode);
+                            lastSundayOfMonth);
                     calendarData.add(dayCalendarEntity);
 
                     week = Util.addWeek(week, 1);
@@ -161,7 +159,7 @@ final class CalendarEntity {
     /**
      * 创建日类型的对象.
      */
-    private CalendarEntity(int[] date, int[] todayDate, int week, int lastSundayOfMonth, boolean doubleSelectedMode) {
+    private CalendarEntity(int[] date, int[] todayDate, int week, int lastSundayOfMonth) {
 
         this.itemType = ITEM_TYPE_DAY;
         this.date = date;
@@ -173,7 +171,7 @@ final class CalendarEntity {
         this.isLastSundayOfMonth = date[2] == lastSundayOfMonth;
         this.monthString = String.format(Util.getInstance().format_month, date[0], date[1]);
         this.dayString = isToday ? Util.getInstance().today : String.valueOf(date[2]);
-        this.selectedType = doubleSelectedMode || !isToday ? SELECTED_TYPE_UNSELECTED : SELECTED_TYPE_SELECTED;
+        this.selectedType = !isToday ? SELECTED_TYPE_UNSELECTED : SELECTED_TYPE_SELECTED;
     }
 
     /**

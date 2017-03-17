@@ -24,26 +24,12 @@ public class MainActivity extends Activity {
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.activity_main, menu);
 
-        boolean doubleSelected = mRecyclerCalendarView.isDoubleSelectedMode();
-        MenuItem doubleSelectedMenuItem = menu.findItem(R.id.double_selected_mode);
-        doubleSelectedMenuItem.setTitle(doubleSelected ? R.string.single_selected_mode
-                : R.string.double_selected_mode);
-
         return true;
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-            case R.id.double_selected_mode: {
-                boolean doubleSelectedMode = mRecyclerCalendarView.isDoubleSelectedMode();
-                mRecyclerCalendarView.setDoubleSelectedMode(!doubleSelectedMode);
-                mRecyclerCalendarView.scrollToSelected();
-
-                item.setTitle(doubleSelectedMode ? R.string.double_selected_mode : R.string.single_selected_mode);
-
-                return true;
-            }
             case R.id.reset_selected: {
                 mRecyclerCalendarView.resetSelected();
 
