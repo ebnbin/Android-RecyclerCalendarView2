@@ -10,41 +10,35 @@ import com.chad.library.adapter.base.BaseViewHolder;
 /**
  * 日历 adapter.
  */
-final class CalendarAdapter extends BaseMultiItemQuickAdapter<CalendarEntity, BaseViewHolder> {
-    private OnDayClickListener mOnDayClickListener;
-
+final class CalendarAdapter extends BaseMultiItemQuickAdapter<Entity, BaseViewHolder> {
     CalendarAdapter() {
         super(null);
 
-        addItemType(CalendarEntity.ITEM_TYPE_MONTH, R.layout.item_month);
-        addItemType(CalendarEntity.ITEM_TYPE_DAY, R.layout.item_day);
-        addItemType(CalendarEntity.ITEM_TYPE_EMPTY_DAY, R.layout.item_empty_day);
-    }
-
-    public void setOnDayClickListener(OnDayClickListener onDayClickListener) {
-        mOnDayClickListener = onDayClickListener;
+        addItemType(Entity.ITEM_TYPE_MONTH, R.layout.item_month);
+        addItemType(Entity.ITEM_TYPE_DAY, R.layout.item_day);
+        addItemType(Entity.ITEM_TYPE_EMPTY_DAY, R.layout.item_empty_day);
     }
 
     @Override
-    protected void convert(final BaseViewHolder helper, CalendarEntity item) {
+    protected void convert(final BaseViewHolder helper, Entity item) {
         switch (helper.getItemViewType()) {
-            case CalendarEntity.ITEM_TYPE_MONTH: {
-                CalendarMonthEntity monthEntity = (CalendarMonthEntity) item;
+            case Entity.ITEM_TYPE_MONTH: {
+                MonthEntity monthEntity = (MonthEntity) item;
 
                 helper.setText(R.id.month, monthEntity.monthString);
 
                 break;
             }
-            case CalendarEntity.ITEM_TYPE_DAY: {
-                final CalendarDayEntity dayEntity = (CalendarDayEntity) item;
+            case Entity.ITEM_TYPE_DAY: {
+                final DayEntity dayEntity = (DayEntity) item;
 
-                helper.getConvertView().setEnabled(dayEntity.isEnabled);
-                helper.getConvertView().setSelected(dayEntity.selected);
+                helper.getConvertView().setEnabled(dayEntity.isValid);
+                helper.getConvertView().setBackgroundResource(dayEntity.getBackgroundResource());
                 helper.getConvertView().setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        if (mOnDayClickListener != null && dayEntity.isEnabled) {
-                            mOnDayClickListener.onDayClick(helper.getLayoutPosition());
+                        if (listener != null && dayEntity.isValid) {
+                            listener.onDayClick(helper.getLayoutPosition());
                         }
                     }
                 });
@@ -69,12 +63,14 @@ final class CalendarAdapter extends BaseMultiItemQuickAdapter<CalendarEntity, Ba
             @Override
             public int getSpanSize(int position) {
                 int itemType = getItemViewType(position);
-                if (itemType == CalendarEntity.ITEM_TYPE_MONTH) {
+                if (itemType == Entity.ITEM_TYPE_MONTH) {
                     return spanCount;
                 }
+
                 if (oldSizeLookup != null) {
                     return oldSizeLookup.getSpanSize(position);
                 }
+
                 return 1;
             }
         });
@@ -83,7 +79,9 @@ final class CalendarAdapter extends BaseMultiItemQuickAdapter<CalendarEntity, Ba
     //*****************************************************************************************************************
     // Listener.
 
-    static abstract class OnDayClickListener {
+    public Listener listener;
+
+    static abstract class Listener {
         void onDayClick(int position) {
         }
     }

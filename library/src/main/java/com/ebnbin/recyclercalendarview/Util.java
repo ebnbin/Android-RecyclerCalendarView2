@@ -95,21 +95,47 @@ final class Util {
     }
 
     /**
-     * 返回日期字符串.
+     * 是否为今天.
      */
-    public static String getDateString(int[] date) {
-        return String.format(getInstance().format_date, date[0], date[1], date[2]);
+    public static boolean isToday(int[] date) {
+        return isDateEqual(date, getTodayDate());
+    }
+
+    /**
+     * 范围是否有效.
+     */
+    public static boolean isRangeValid(int yearFrom, int monthFrom, int yearTo, int monthTo) {
+        return yearFrom >= 1970
+                && yearFrom <= 2037
+                && monthFrom >= 1
+                && monthFrom <= 12
+                && yearTo <= 2037
+                && monthTo <= 12
+                && (yearTo > yearFrom || yearTo == yearFrom && monthTo >= monthFrom);
+    }
+
+    /**
+     * 日期是否有效.
+     */
+    public static boolean isDateValid(int[] date) {
+        return date != null
+                && date.length == 3
+                && date[0] >= 1970
+                && date[0] <= 2037
+                && date[1] >= 1
+                && date[1] <= 12
+                && date[2] >= 1
+                && date[2] <= getDaysOfMonth(date[0], date[1]);
     }
 
     //*****************************************************************************************************************
-    // CalendarEntity.
+    // Entity.
 
     /**
      * 返回一个日历数据.
      */
-    public static List<CalendarEntity> newCalendarData(int[] todayDate, int yearFrom, int monthFrom, int yearTo,
-            int monthTo) {
-        List<CalendarEntity> calendarData = new ArrayList<>();
+    public static List<Entity> newCalendarData(int yearFrom, int monthFrom, int yearTo, int monthTo) {
+        List<Entity> calendarData = new ArrayList<>();
 
         int weekOfFirstDayOfMonth = Util.getWeek(new int[]{yearFrom, monthFrom, 1});
 
@@ -119,19 +145,18 @@ final class Util {
                     continue;
                 }
 
-                CalendarEntity monthCalendarEntity = new CalendarMonthEntity(year, month);
-                calendarData.add(monthCalendarEntity);
+                Entity monthEntity = new MonthEntity(year, month);
+                calendarData.add(monthEntity);
 
                 for (int emptyDay = 0; emptyDay < weekOfFirstDayOfMonth; emptyDay++) {
-                    CalendarEntity emptyDayCalendarEntity = new CalendarEmptyDayEntity(year, month);
-                    calendarData.add(emptyDayCalendarEntity);
+                    Entity emptyDayEntity = new EmptyDayEntity();
+                    calendarData.add(emptyDayEntity);
                 }
 
                 int daysOfMonth = Util.getDaysOfMonth(year, month);
-
                 for (int day = 1; day <= daysOfMonth; day++) {
-                    CalendarEntity dayCalendarEntity = new CalendarDayEntity(new int[]{year, month, day}, todayDate);
-                    calendarData.add(dayCalendarEntity);
+                    Entity dayEntity = new DayEntity(new int[]{year, month, day});
+                    calendarData.add(dayEntity);
                 }
 
                 weekOfFirstDayOfMonth = Util.addWeek(weekOfFirstDayOfMonth, daysOfMonth);
@@ -156,25 +181,19 @@ final class Util {
         return sInstance;
     }
 
-    public final int background_day;
-    public final int background_selected;
     public final int text_day;
     public final int text_selected;
     public final int text_today;
     public final int text_disabled;
 
     public final String format_month;
-    public final String format_date;
 
     private Util(Context context) {
-        background_day = context.getResources().getColor(R.color.background_day);
-        background_selected = context.getResources().getColor(R.color.background_selected);
-        text_day = context.getResources().getColor(R.color.text_day);
-        text_selected = context.getResources().getColor(R.color.text_selected);
-        text_today = context.getResources().getColor(R.color.text_today);
-        text_disabled = context.getResources().getColor(R.color.text_disabled);
+        text_day = context.getColor(R.color.text_normal);
+        text_selected = context.getColor(R.color.text_selected);
+        text_today = context.getColor(R.color.text_today);
+        text_disabled = context.getColor(R.color.text_disabled);
 
         format_month = context.getString(R.string.format_month);
-        format_date = context.getString(R.string.format_date);
     }
 }

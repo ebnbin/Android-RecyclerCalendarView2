@@ -3,7 +3,6 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="@dimen/size_day"
     android:layout_height="@dimen/size_day"
-    android:background="@drawable/selector_background_day"
     android:clickable="true">
     <TextView
         android:id="@+id/day"

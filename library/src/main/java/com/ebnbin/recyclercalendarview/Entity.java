@@ -5,7 +5,7 @@ import com.chad.library.adapter.base.entity.MultiItemEntity;
 /**
  * 日历实体类.
  */
-interface CalendarEntity extends MultiItemEntity {
+interface Entity extends MultiItemEntity {
     /**
      * 月类型.
      */

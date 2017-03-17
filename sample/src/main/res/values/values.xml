@@ -1,6 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="reset_selected">重置选中</string>
-    <string name="scroll_to_today">回到今天</string>
     <string name="scroll_to_selected">回到选中</string>
 </resources>

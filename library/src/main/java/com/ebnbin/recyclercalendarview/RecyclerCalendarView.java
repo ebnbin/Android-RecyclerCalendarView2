@@ -8,17 +8,14 @@ import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.AttributeSet;
 import android.widget.FrameLayout;
-import android.widget.Toast;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * 列表日历 view.
  */
 public class RecyclerCalendarView extends FrameLayout {
-    /**
-     * 今天日期.
-     */
-    private int[] mTodayDate;
-
     private RecyclerView mCalendarRecyclerView;
 
     private GridLayoutManager mCalendarLayoutManager;
@@ -38,8 +35,6 @@ public class RecyclerCalendarView extends FrameLayout {
 
         Util.init(getContext());
 
-        mTodayDate = Util.getTodayDate();
-
         inflate(getContext(), R.layout.view_recycler_calendar, this);
 
         mCalendarRecyclerView = (RecyclerView) findViewById(R.id.calendar);
@@ -48,96 +43,61 @@ public class RecyclerCalendarView extends FrameLayout {
         mCalendarRecyclerView.setLayoutManager(mCalendarLayoutManager);
 
         mCalendarAdapter = new CalendarAdapter();
-        mCalendarAdapter.setOnDayClickListener(new CalendarAdapter.OnDayClickListener() {
+        mCalendarAdapter.listener = new CalendarAdapter.Listener() {
             @Override
             void onDayClick(int position) {
                 super.onDayClick(position);
 
-                clickPosition(position, true, true);
+                selectPosition(position, true);
             }
-        });
+        };
         mCalendarRecyclerView.setAdapter(mCalendarAdapter);
-
-        int[] todayDate = Util.getTodayDate();
-        setDoubleSelectedMode(false, todayDate[0], todayDate[1], todayDate[0], todayDate[1]);
-        scrollToSelected();
     }
 
     //*****************************************************************************************************************
-    // 选中模式.
+    // 选中.
 
     /**
-     * 当前选中的第一个位置.
+     * 当前选中的位置.
      */
-    private int mSelectedPositionA = -1;
+    private int mSelectedPosition = -1;
 
     /**
-     * 设置是否为双选模式, 并重置选中日期.
+     * 设置年月范围并更新数据.
      */
-    public void setDoubleSelectedMode(int yearFrom, int monthFrom, int yearTo, int monthTo) {
-        setDoubleSelectedMode(true, yearFrom, monthFrom, yearTo, monthTo);
-    }
-
-    /**
-     * 设置单选模式, 并指定选中的日期.
-     */
-    public void setDoubleSelectedMode(int[] date, int yearFrom, int monthFrom, int yearTo, int monthTo) {
-        setDoubleSelectedMode(false, yearFrom, monthFrom, yearTo, monthTo);
-
-        setDate(date);
-    }
-
-    private void setDoubleSelectedMode(boolean notifyDataSetChanged, int yearFrom, int monthFrom, int yearTo,
-            int monthTo) {
-        mCalendarAdapter.setNewData(Util.newCalendarData(mTodayDate, yearFrom, monthFrom, yearTo, monthTo));
-
-        resetSelected(notifyDataSetChanged);
-    }
-
-    /**
-     * 重置选中日期.
-     */
-    public void resetSelected() {
-        resetSelected(true);
-    }
-
-    private void resetSelected(boolean notifyDataSetChanged) {
-        selectPositionA(getPosition(mTodayDate));
-
-        if (notifyDataSetChanged) {
-            mCalendarAdapter.notifyDataSetChanged();
-        }
-    }
-
-    public void setDate(int[] date) {
-        clickPosition(getPosition(date), true, false);
-    }
-
-    /**
-     * 点击某位置.
-     */
-    private void clickPosition(int position, boolean notifyDataSetChanged, boolean callback) {
-        selectPositionA(position);
-        if (callback) {
-            onSingleSelected(mSelectedPositionA);
-        }
-
-        if (notifyDataSetChanged) {
-            mCalendarAdapter.notifyDataSetChanged();
-        }
-    }
-
-    /**
-     * 设置第一个位置.
-     */
-    private void selectPositionA(int position) {
-        if (mSelectedPositionA == position) {
+    public void setRange(int yearFrom, int monthFrom, int yearTo, int monthTo) {
+        if (!Util.isRangeValid(yearFrom, monthFrom, yearTo, monthTo)) {
             return;
         }
 
-        if (mSelectedPositionA != -1) {
-            setPositionSelected(mSelectedPositionA, false);
-            mSelectedPositionA = -1;
+        List<Entity> data = Util.newCalendarData(yearFrom, monthFrom, yearTo, monthTo);
+        mCalendarAdapter.setNewData(data);
+
+        mSelectedPosition = -1;
+    }
+
+    /**
+     *  选中某日期.
+     */
+    public void selectDate(int[] date) {
+        if (!Util.isDateValid(date)) {
+            return;
+        }
+
+        selectPosition(getPosition(date), false);
+    }
+
+    /**
+     * 选中某位置.
+     */
+    private void selectPosition(int position, boolean callback) {
+        if (mSelectedPosition == position) {
+            return;
+        }
+
+        if (mSelectedPosition != -1) {
+            setPositionSelected(mSelectedPosition, false);
+            mSelectedPosition = -1;
         }
 
         if (position == -1) {
@@ -145,17 +105,31 @@ public class RecyclerCalendarView extends FrameLayout {
         }
 
         setPositionSelected(position, true);
-        mSelectedPositionA = position;
+        mSelectedPosition = position;
+
+        if (callback) {
+            onSelected(position);
+        }
     }
 
     /**
      * 设置位置的选中状态.
      */
     private void setPositionSelected(int position, boolean selected) {
-        CalendarEntity calendarEntity = mCalendarAdapter.getItem(position);
-        if (calendarEntity.getItemType() == CalendarEntity.ITEM_TYPE_DAY) {
-            ((CalendarDayEntity) calendarEntity).selected = selected;
+        Entity entity = mCalendarAdapter.getItem(position);
+
+        if (!(entity instanceof DayEntity)) {
+            return;
         }
+
+        DayEntity dayEntity = (DayEntity) entity;
+
+        if (dayEntity.selected == selected) {
+            return;
+        }
+
+        dayEntity.selected = selected;
+        mCalendarAdapter.notifyItemChanged(position);
     }
 
     /**
@@ -163,9 +137,8 @@ public class RecyclerCalendarView extends FrameLayout {
      */
     private int getPosition(int[] date) {
         for (int position = 0; position < mCalendarAdapter.getItemCount(); position++) {
-            CalendarEntity calendarEntity = mCalendarAdapter.getItem(position);
-            if (calendarEntity.getItemType() == CalendarEntity.ITEM_TYPE_DAY
-                    && Util.isDateEqual(((CalendarDayEntity) calendarEntity).date, date)) {
+            Entity entity = mCalendarAdapter.getItem(position);
+            if (entity instanceof DayEntity && Util.isDateEqual(((DayEntity) entity).date, date)) {
                 return position;
             }
         }
@@ -189,20 +162,16 @@ public class RecyclerCalendarView extends FrameLayout {
     }
 
     /**
-     * 滚动到今天.
-     */
-    public void scrollToToday() {
-        scrollToPosition(getPosition(mTodayDate));
-    }
-
-    /**
-     * 滚动到选中的位置, 如果没有选中的位置则滚动到今天.
+     * 滚动到选中的位置, 如果没有选中的位置则滚动到今天, 如果今天不存在则不滚动.
      */
     public void scrollToSelected() {
-        if (mSelectedPositionA != -1) {
-            scrollToPosition(mSelectedPositionA);
+        if (mSelectedPosition == -1) {
+            int todayPosition = getPosition(Util.getTodayDate());
+            if (todayPosition != -1) {
+                scrollToPosition(todayPosition);
+            }
         } else {
-            scrollToToday();
+            scrollToPosition(mSelectedPosition);
         }
     }
 
@@ -212,8 +181,13 @@ public class RecyclerCalendarView extends FrameLayout {
     private void scrollToPosition(int position) {
         mScrollToPosition = position;
 
+        if (mScrollToPosition == -1) {
+            return;
+        }
+
         int calendarRecyclerViewMeasuredHeight = mCalendarRecyclerView.getMeasuredHeight();
-        if (mScrollToPosition == -1 || calendarRecyclerViewMeasuredHeight == 0) {
+
+        if (calendarRecyclerViewMeasuredHeight == 0) {
             return;
         }
 
@@ -223,14 +197,36 @@ public class RecyclerCalendarView extends FrameLayout {
     }
 
     //*****************************************************************************************************************
-    // 回调.
+    // 监听.
 
     /**
-     * 单选回调.
+     * 监听器.
      */
-    private void onSingleSelected(int position) {
-        CalendarEntity calendarEntity = mCalendarAdapter.getItem(position);
-        Toast.makeText(getContext(), Util.getDateString(((CalendarDayEntity) calendarEntity).date), Toast.LENGTH_SHORT)
-                .show();
+    public final List<Listener> listeners = new ArrayList<>();
+
+    /**
+     * 回调.
+     */
+    private void onSelected(int position) {
+        Entity entity = mCalendarAdapter.getItem(position);
+
+        if (!(entity instanceof DayEntity)) {
+            return;
+        }
+
+        DayEntity dayEntity = (DayEntity) entity;
+        int[] date = dayEntity.date;
+
+        for (Listener listener : listeners) {
+            listener.onSelected(date);
+        }
+    }
+
+    /**
+     * 回调监听器.
+     */
+    public static abstract class Listener {
+        public void onSelected(int[] date) {
+        }
     }
 }
