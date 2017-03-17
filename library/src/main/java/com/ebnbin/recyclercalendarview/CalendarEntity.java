@@ -74,19 +74,6 @@ final class CalendarEntity {
     public static final int ITEM_TYPE_DIVIDER = 3;
 
     /**
-     * 未选中的.
-     */
-    public static final int SELECTED_TYPE_UNSELECTED = 0;
-    /**
-     * 已选中的.
-     */
-    public static final int SELECTED_TYPE_SELECTED = 1;
-    /**
-     * 选中范围的.
-     */
-    public static final int SELECTED_TYPE_RANGED = 2;
-
-    /**
      * 类型.
      */
     public final int itemType;
@@ -124,9 +111,9 @@ final class CalendarEntity {
     public final String dayString;
 
     /**
-     * 选中类型.
+     * 是否选中.
      */
-    public int selectedType;
+    public boolean selected;
 
     /**
      * 创建月类型或空白日类型的对象.
@@ -140,7 +127,7 @@ final class CalendarEntity {
         this.isLastSundayOfMonth = false;
         this.monthString = String.format(Util.getInstance().format_month, year, month);
         this.dayString = null;
-        this.selectedType = SELECTED_TYPE_UNSELECTED;
+        this.selected = false;
     }
 
     /**
@@ -155,7 +142,7 @@ final class CalendarEntity {
         this.isLastSundayOfMonth = date[2] == lastSundayOfMonth;
         this.monthString = String.format(Util.getInstance().format_month, date[0], date[1]);
         this.dayString = isToday ? Util.getInstance().today : String.valueOf(date[2]);
-        this.selectedType = !isToday ? SELECTED_TYPE_UNSELECTED : SELECTED_TYPE_SELECTED;
+        this.selected = isToday;
     }
 
     /**
@@ -170,7 +157,7 @@ final class CalendarEntity {
         this.isLastSundayOfMonth = false;
         this.monthString = null;
         this.dayString = null;
-        this.selectedType = SELECTED_TYPE_UNSELECTED;
+        this.selected = false;
     }
 
     /**
@@ -188,7 +175,7 @@ final class CalendarEntity {
         }
 
         // 选中的.
-        if (selectedType != SELECTED_TYPE_UNSELECTED) {
+        if (selected) {
             return Util.getInstance().text_selected;
         }
 
@@ -215,17 +202,11 @@ final class CalendarEntity {
             return Util.getInstance().background_disabled;
         }
 
-        // 选中类型.
-        switch (selectedType) {
-            case SELECTED_TYPE_SELECTED: {
-                return Util.getInstance().background_selected;
-            }
-            case SELECTED_TYPE_RANGED: {
-                return Util.getInstance().background_ranged;
-            }
-            default: {
-                return Util.getInstance().background_day;
-            }
+        // 选中的.
+        if (selected) {
+            return Util.getInstance().background_selected;
         }
+
+        return Util.getInstance().background_day;
     }
 }

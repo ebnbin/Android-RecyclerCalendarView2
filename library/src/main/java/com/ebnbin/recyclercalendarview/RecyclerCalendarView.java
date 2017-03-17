@@ -133,7 +133,7 @@ public class RecyclerCalendarView extends FrameLayout {
         }
 
         if (mSelectedPositionA != -1) {
-            setPositionSelected(mSelectedPositionA, CalendarEntity.SELECTED_TYPE_UNSELECTED);
+            setPositionSelected(mSelectedPositionA, false);
             mSelectedPositionA = -1;
         }
 
@@ -141,17 +141,17 @@ public class RecyclerCalendarView extends FrameLayout {
             return;
         }
 
-        setPositionSelected(position, CalendarEntity.SELECTED_TYPE_SELECTED);
+        setPositionSelected(position, true);
         mSelectedPositionA = position;
     }
 
     /**
      * 设置位置的选中状态.
      */
-    private void setPositionSelected(int position, int selected) {
+    private void setPositionSelected(int position, boolean selected) {
         CalendarEntity calendarEntity = mCalendarAdapter.getCalendarData().get(position);
         if (calendarEntity.itemType == CalendarEntity.ITEM_TYPE_DAY) {
-            calendarEntity.selectedType = selected;
+            calendarEntity.selected = selected;
         }
     }
 

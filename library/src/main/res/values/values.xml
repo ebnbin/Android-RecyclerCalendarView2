@@ -3,7 +3,6 @@
     <color name="transparent">#0000</color>
     <color name="background_day">#0000</color>
     <color name="background_selected">#f00</color>
-    <color name="background_ranged">#f88</color>
     <color name="background_disabled">#0000</color>
     <color name="text_day">#000</color>
     <color name="text_selected">#fff</color>
