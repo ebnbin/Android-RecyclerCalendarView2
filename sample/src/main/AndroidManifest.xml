@@ -5,8 +5,7 @@
     <application
         android:label="RecyclerCalendarView Sample">
         <activity
-            android:name=".MainActivity"
-            android:screenOrientation="portrait">
+            android:name=".MainActivity">
             <intent-filter>
                 <action
                     android:name="android.intent.action.MAIN"/>

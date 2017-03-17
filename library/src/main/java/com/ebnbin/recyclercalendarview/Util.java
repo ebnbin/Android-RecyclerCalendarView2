@@ -162,7 +162,6 @@ final class Util {
     public final int transparent;
     public final int background_day;
     public final int background_selected;
-    public final int background_disabled;
     public final int text_day;
     public final int text_selected;
     public final int text_today;
@@ -175,7 +174,6 @@ final class Util {
         transparent = context.getResources().getColor(R.color.transparent);
         background_day = context.getResources().getColor(R.color.background_day);
         background_selected = context.getResources().getColor(R.color.background_selected);
-        background_disabled = context.getResources().getColor(R.color.background_disabled);
         text_day = context.getResources().getColor(R.color.text_day);
         text_selected = context.getResources().getColor(R.color.text_selected);
         text_today = context.getResources().getColor(R.color.text_today);

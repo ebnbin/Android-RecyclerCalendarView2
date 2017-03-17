@@ -3,7 +3,6 @@
     <color name="transparent">#0000</color>
     <color name="background_day">#0000</color>
     <color name="background_selected">#f00</color>
-    <color name="background_disabled">#0000</color>
     <color name="text_day">#000</color>
     <color name="text_selected">#fff</color>
     <color name="text_today">#f00</color>
@@ -21,12 +20,15 @@
     <color name="text_week">#888</color>
     <color name="text_month">#444</color>
 
+    <dimen name="width_calendar">280dp</dimen>
+    <dimen name="height_calendar">288dp</dimen>
     <dimen name="height_week">40dp</dimen>
     <dimen name="height_month">32dp</dimen>
-    <dimen name="height_day">48dp</dimen>
     <dimen name="height_divider">0.5dp</dimen>
     <dimen name="height_placeholder">64dp</dimen>
     <dimen name="margin_top_calendar">39.5dp</dimen>
+    <dimen name="size_day">40dp</dimen>
+    <dimen name="size_day_text">28.28dp</dimen>
     <dimen name="text_size_week">11sp</dimen>
     <dimen name="text_size_month">12sp</dimen>
     <dimen name="text_size_day">13sp</dimen>

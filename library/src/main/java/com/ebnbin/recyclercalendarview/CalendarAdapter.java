@@ -40,7 +40,7 @@ final class CalendarAdapter extends BaseMultiItemQuickAdapter<CalendarEntity, Ba
                 final CalendarDayEntity dayEntity = (CalendarDayEntity) item;
 
                 helper.getConvertView().setEnabled(dayEntity.isEnabled);
-                helper.getConvertView().setBackgroundColor(dayEntity.getBackgroundColor());
+                helper.getConvertView().setSelected(dayEntity.selected);
                 helper.getConvertView().setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {

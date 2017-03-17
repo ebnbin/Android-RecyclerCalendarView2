@@ -80,21 +80,4 @@ final class CalendarDayEntity implements CalendarYearMonthEntity {
         // 默认.
         return Util.getInstance().text_day;
     }
-
-    /**
-     * 返回背景颜色.
-     */
-    public int getBackgroundColor() {
-        // 不可用.
-        if (!isEnabled) {
-            return Util.getInstance().background_disabled;
-        }
-
-        // 选中的.
-        if (selected) {
-            return Util.getInstance().background_selected;
-        }
-
-        return Util.getInstance().background_day;
-    }
 }
