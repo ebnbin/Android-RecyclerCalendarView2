@@ -18,8 +18,4 @@ interface CalendarEntity extends MultiItemEntity {
      * 空白日类型.
      */
     int ITEM_TYPE_EMPTY_DAY = 2;
-    /**
-     * 分隔线类型.
-     */
-    int ITEM_TYPE_DIVIDER = 3;
 }

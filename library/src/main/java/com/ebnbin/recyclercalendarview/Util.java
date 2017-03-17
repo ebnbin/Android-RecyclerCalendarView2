@@ -138,9 +138,6 @@ final class Util {
             }
         }
 
-        CalendarEntity dividerCalendarEntity = new CalendarDividerEntity();
-        calendarData.add(dividerCalendarEntity);
-
         return calendarData;
     }
 
@@ -159,7 +156,6 @@ final class Util {
         return sInstance;
     }
 
-    public final int transparent;
     public final int background_day;
     public final int background_selected;
     public final int text_day;
@@ -171,7 +167,6 @@ final class Util {
     public final String format_date;
 
     private Util(Context context) {
-        transparent = context.getResources().getColor(R.color.transparent);
         background_day = context.getResources().getColor(R.color.background_day);
         background_selected = context.getResources().getColor(R.color.background_selected);
         text_day = context.getResources().getColor(R.color.text_day);

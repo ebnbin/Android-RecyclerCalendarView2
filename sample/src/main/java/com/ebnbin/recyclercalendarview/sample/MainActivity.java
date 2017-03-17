@@ -15,11 +15,11 @@ public class MainActivity extends Activity {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        mRecyclerCalendarView = new RecyclerCalendarView(this);
+        setContentView(R.layout.activity_main);
+
+        mRecyclerCalendarView = (RecyclerCalendarView) findViewById(R.id.recycler_calendar_view);
         mRecyclerCalendarView.setDoubleSelectedMode(2015, 5, 2017, 3);
         mRecyclerCalendarView.scrollToSelected();
-
-        setContentView(mRecyclerCalendarView);
     }
 
     @Override

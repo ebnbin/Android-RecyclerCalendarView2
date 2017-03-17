@@ -19,7 +19,6 @@ final class CalendarAdapter extends BaseMultiItemQuickAdapter<CalendarEntity, Ba
         addItemType(CalendarEntity.ITEM_TYPE_MONTH, R.layout.item_month);
         addItemType(CalendarEntity.ITEM_TYPE_DAY, R.layout.item_day);
         addItemType(CalendarEntity.ITEM_TYPE_EMPTY_DAY, R.layout.item_empty_day);
-        addItemType(CalendarEntity.ITEM_TYPE_DIVIDER, R.layout.item_divider);
     }
 
     public void setOnDayClickListener(OnDayClickListener onDayClickListener) {
@@ -70,7 +69,7 @@ final class CalendarAdapter extends BaseMultiItemQuickAdapter<CalendarEntity, Ba
             @Override
             public int getSpanSize(int position) {
                 int itemType = getItemViewType(position);
-                if (itemType == CalendarEntity.ITEM_TYPE_MONTH || itemType == CalendarEntity.ITEM_TYPE_DIVIDER) {
+                if (itemType == CalendarEntity.ITEM_TYPE_MONTH) {
                     return spanCount;
                 }
                 if (oldSizeLookup != null) {

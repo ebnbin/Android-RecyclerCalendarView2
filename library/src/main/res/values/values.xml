@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="transparent">#0000</color>
     <color name="background_day">#0000</color>
     <color name="background_selected">#f00</color>
     <color name="text_day">#000</color>
@@ -22,17 +21,14 @@
 
     <dimen name="width_calendar">280dp</dimen>
     <dimen name="height_calendar">288dp</dimen>
-    <dimen name="height_week">40dp</dimen>
-    <dimen name="height_month">32dp</dimen>
+    <dimen name="height_week">24dp</dimen>
+    <dimen name="height_month">24dp</dimen>
     <dimen name="height_divider">0.5dp</dimen>
-    <dimen name="height_placeholder">64dp</dimen>
-    <dimen name="margin_top_calendar">39.5dp</dimen>
     <dimen name="size_day">40dp</dimen>
     <dimen name="size_day_text">28.28dp</dimen>
-    <dimen name="text_size_week">11sp</dimen>
-    <dimen name="text_size_month">12sp</dimen>
-    <dimen name="text_size_day">13sp</dimen>
-    <dimen name="text_size_special">10sp</dimen>
+    <dimen name="text_size_week">12sp</dimen>
+    <dimen name="text_size_month">13sp</dimen>
+    <dimen name="text_size_day">14sp</dimen>
 
     <string name="sunday">日</string>
     <string name="monday">一</string>

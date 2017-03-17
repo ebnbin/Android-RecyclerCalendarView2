@@ -1,18 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
+<FrameLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="@dimen/height_month"
-    android:orientation="vertical">
-    <include
-        layout="@layout/item_divider"/>
+    android:background="@color/background_month">
     <TextView
         android:id="@+id/month"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:gravity="center"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
         android:textColor="@color/text_month"
         android:textSize="@dimen/text_size_month"
-        android:background="@color/background_month"/>
-</LinearLayout>
+        android:textStyle="bold"/>
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/height_divider"
+        android:minHeight="1px"
+        android:background="@color/background_divider"/>
+</FrameLayout>

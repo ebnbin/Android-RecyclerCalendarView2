@@ -1,22 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout
+<LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="#444">
-    <android.support.v7.widget.RecyclerView
-        android:id="@+id/calendar"
-        android:layout_width="@dimen/width_calendar"
-        android:layout_height="@dimen/height_calendar"
-        android:layout_marginTop="@dimen/margin_top_calendar"
-        android:paddingBottom="@dimen/height_placeholder"
-        android:clipToPadding="false"
-        android:scrollbars="vertical"
-        android:scrollbarStyle="outsideOverlay"
-        android:layout_gravity="center_horizontal"
-        android:background="@color/background_calendar"/>
+    android:layout_width="@dimen/width_calendar"
+    android:layout_height="@dimen/height_calendar"
+    android:orientation="vertical"
+    android:background="@color/background_calendar">
     <LinearLayout
-        android:layout_width="@dimen/width_calendar"
+        android:layout_width="match_parent"
         android:layout_height="@dimen/height_week"
         android:orientation="horizontal"
         android:background="@color/background_week"
@@ -43,4 +33,13 @@
             style="@style/WeekTextView"
             android:text="@string/saturday"/>
     </LinearLayout>
-</FrameLayout>
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/calendar"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:clipToPadding="false"
+        android:scrollbars="vertical"
+        android:scrollbarStyle="outsideOverlay"
+        android:layout_gravity="center_horizontal"/>
+</LinearLayout>
