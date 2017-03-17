@@ -16,8 +16,8 @@ final class CalendarEntity {
         int yearTo = todayDate[0];
         int monthTo = todayDate[1];
 
-        int week = Util.getWeek(new int[]{Util.getInstance().year_from, Util.getInstance().month_from, 1});
-        int weekOfFirstDayOfMonth = week;
+        int weekOfFirstDayOfMonth = Util.getWeek(new int[]{Util.getInstance().year_from, Util.getInstance().month_from,
+                1});
 
         for (int year = Util.getInstance().year_from; year <= yearTo; year++) {
             for (int month = 1; month <= 12; month++) {
@@ -38,11 +38,9 @@ final class CalendarEntity {
                 int lastSundayOfMonth = Util.getLastSundayOfMonth(daysOfMonth, weekOfFirstDayOfMonth);
 
                 for (int day = 1; day <= daysOfMonth; day++) {
-                    CalendarEntity dayCalendarEntity = new CalendarEntity(new int[]{year, month, day}, todayDate, week,
+                    CalendarEntity dayCalendarEntity = new CalendarEntity(new int[]{year, month, day}, todayDate,
                             lastSundayOfMonth);
                     calendarData.add(dayCalendarEntity);
-
-                    week = Util.addWeek(week, 1);
                 }
 
                 weekOfFirstDayOfMonth = Util.addWeek(weekOfFirstDayOfMonth, daysOfMonth);
@@ -99,11 +97,6 @@ final class CalendarEntity {
     public final int[] date;
 
     /**
-     * 星期.
-     */
-    public final int week;
-
-    /**
      * 是否为今天.
      */
     public final boolean isToday;
@@ -115,10 +108,6 @@ final class CalendarEntity {
      * 是否为可用.
      */
     public final boolean isEnabled;
-    /**
-     * 是否为周末.
-     */
-    public final boolean isWeekend;
 
     /**
      * 是否为当前月的最后一个星期日.
@@ -145,11 +134,9 @@ final class CalendarEntity {
     private CalendarEntity(int year, int month, int itemType) {
         this.itemType = itemType;
         this.date = new int[]{year, month, 0};
-        this.week = -1;
         this.isToday = false;
         this.isPresent = false;
         this.isEnabled = false;
-        this.isWeekend = false;
         this.isLastSundayOfMonth = false;
         this.monthString = String.format(Util.getInstance().format_month, year, month);
         this.dayString = null;
@@ -159,15 +146,12 @@ final class CalendarEntity {
     /**
      * 创建日类型的对象.
      */
-    private CalendarEntity(int[] date, int[] todayDate, int week, int lastSundayOfMonth) {
-
+    private CalendarEntity(int[] date, int[] todayDate, int lastSundayOfMonth) {
         this.itemType = ITEM_TYPE_DAY;
         this.date = date;
-        this.week = week;
         this.isToday = Util.isDateEqual(date, todayDate);
         this.isPresent = Util.isDateBefore(date, todayDate, true);
         this.isEnabled = isPresent;
-        this.isWeekend = week == 0 || week == 6;
         this.isLastSundayOfMonth = date[2] == lastSundayOfMonth;
         this.monthString = String.format(Util.getInstance().format_month, date[0], date[1]);
         this.dayString = isToday ? Util.getInstance().today : String.valueOf(date[2]);
@@ -180,11 +164,9 @@ final class CalendarEntity {
     private CalendarEntity() {
         this.itemType = ITEM_TYPE_DIVIDER;
         this.date = null;
-        this.week = -1;
         this.isToday = false;
         this.isPresent = false;
         this.isEnabled = false;
-        this.isWeekend = false;
         this.isLastSundayOfMonth = false;
         this.monthString = null;
         this.dayString = null;
@@ -213,11 +195,6 @@ final class CalendarEntity {
         // 今天.
         if (isToday) {
             return Util.getInstance().text_today;
-        }
-
-        // 周末.
-        if (isWeekend) {
-            return Util.getInstance().text_weekend;
         }
 
         // 默认.
