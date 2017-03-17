@@ -4,7 +4,6 @@ import android.text.TextUtils;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 /**
  * 日历实体类.
@@ -20,8 +19,6 @@ final class CalendarEntity {
 
         int yearTo = specialDateBefore[0];
         int monthTo = specialDateBefore[1];
-
-        Map<Integer, Map<Integer, Map<Integer, String>>> festivals = Util.getInstance().festivals;
 
         int week = Util.getWeek(new int[]{Util.getInstance().year_from, Util.getInstance().month_from, 1});
         int weekOfFirstDayOfMonth = week;
@@ -46,7 +43,7 @@ final class CalendarEntity {
 
                 for (int day = 1; day <= daysOfMonth; day++) {
                     CalendarEntity dayCalendarEntity = new CalendarEntity(new int[]{year, month, day}, todayDate,
-                            specialDateBefore, festivals, week, lastSundayOfMonth, doubleSelectedMode);
+                            specialDateBefore, week, lastSundayOfMonth, doubleSelectedMode);
                     calendarData.add(dayCalendarEntity);
 
                     week = Util.addWeek(week, 1);
@@ -109,10 +106,6 @@ final class CalendarEntity {
      * 特殊.
      */
     public final String special;
-    /**
-     * 节日.
-     */
-    public final String festival;
 
     /**
      * 星期.
@@ -135,10 +128,6 @@ final class CalendarEntity {
      * 是否为可用.
      */
     public final boolean isEnabled;
-    /**
-     * 是否为节日.
-     */
-    public final boolean isFestival;
     /**
      * 是否为周末.
      */
@@ -174,13 +163,11 @@ final class CalendarEntity {
         this.itemType = itemType;
         this.date = new int[]{year, month, 0};
         this.special = null;
-        this.festival = null;
         this.week = -1;
         this.isToday = false;
         this.isPresent = false;
         this.isSpecial = false;
         this.isEnabled = false;
-        this.isFestival = false;
         this.isWeekend = false;
         this.isLastSundayOfMonth = false;
         this.monthString = String.format(Util.getInstance().format_month, year, month);
@@ -192,28 +179,21 @@ final class CalendarEntity {
     /**
      * 创建日类型的对象.
      */
-    private CalendarEntity(int[] date, int[] todayDate, int[] specialDateBefore,
-            Map<Integer, Map<Integer, Map<Integer, String>>> festivals, int week, int lastSundayOfMonth,
+    private CalendarEntity(int[] date, int[] todayDate, int[] specialDateBefore, int week, int lastSundayOfMonth,
             boolean doubleSelectedMode) {
-        String festival = null;
-        if (festivals.get(date[0]) != null && festivals.get(date[0]).get(date[1]) != null) {
-            festival = festivals.get(date[0]).get(date[1]).get(date[2]);
-        }
 
         this.itemType = ITEM_TYPE_DAY;
         this.date = date;
         this.special = Util.getInstance().special;
-        this.festival = festival;
         this.week = week;
         this.isToday = Util.isDateEqual(date, todayDate);
         this.isPresent = Util.isDateBefore(date, todayDate, true);
         this.isSpecial = Util.isDateBetween(date, todayDate, specialDateBefore, false, true);
         this.isEnabled = isPresent || isSpecial;
-        this.isFestival = !TextUtils.isEmpty(festival);
         this.isWeekend = week == 0 || week == 6;
         this.isLastSundayOfMonth = date[2] == lastSundayOfMonth;
         this.monthString = String.format(Util.getInstance().format_month, date[0], date[1]);
-        this.dayString = isToday ? Util.getInstance().today : isFestival ? festival : String.valueOf(date[2]);
+        this.dayString = isToday ? Util.getInstance().today : String.valueOf(date[2]);
         this.specialString = isSpecial ? TextUtils.isEmpty(special) ? "" : special : null;
         this.selectedType = doubleSelectedMode || !isToday ? SELECTED_TYPE_UNSELECTED : SELECTED_TYPE_SELECTED;
     }
@@ -225,13 +205,11 @@ final class CalendarEntity {
         this.itemType = ITEM_TYPE_DIVIDER;
         this.date = null;
         this.special = null;
-        this.festival = null;
         this.week = -1;
         this.isToday = false;
         this.isPresent = false;
         this.isSpecial = false;
         this.isEnabled = false;
-        this.isFestival = false;
         this.isWeekend = false;
         this.isLastSundayOfMonth = false;
         this.monthString = null;
@@ -267,11 +245,6 @@ final class CalendarEntity {
         // 特殊.
         if (isSpecial) {
             return Util.getInstance().text_special;
-        }
-
-        // 节日.
-        if (isFestival) {
-            return Util.getInstance().text_festival;
         }
 
         // 周末.

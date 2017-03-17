@@ -9,7 +9,6 @@
     <color name="text_selected">#fff</color>
     <color name="text_today">#f00</color>
     <color name="text_special">#fa0</color>
-    <color name="text_festival">#f00</color>
     <color name="text_weekend">#f00</color>
     <color name="text_disabled">#ccc</color>
 
@@ -22,7 +21,6 @@
     <string name="today">今天</string>
     <string name="format_month">%1$d年%2$d月</string>
     <string name="format_date">%1$04d-%2$02d-%3$02d</string>
-    <string name="key_festival">festival</string>
 
     <eat-comment/>
 
