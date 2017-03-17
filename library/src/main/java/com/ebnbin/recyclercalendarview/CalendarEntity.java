@@ -88,10 +88,6 @@ final class CalendarEntity {
      */
     public final boolean isToday;
     /**
-     * 是否为现在.
-     */
-    public final boolean isPresent;
-    /**
      * 是否为可用.
      */
     public final boolean isEnabled;
@@ -122,7 +118,6 @@ final class CalendarEntity {
         this.itemType = itemType;
         this.date = new int[]{year, month, 0};
         this.isToday = false;
-        this.isPresent = false;
         this.isEnabled = false;
         this.isLastSundayOfMonth = false;
         this.monthString = String.format(Util.getInstance().format_month, year, month);
@@ -137,8 +132,7 @@ final class CalendarEntity {
         this.itemType = ITEM_TYPE_DAY;
         this.date = date;
         this.isToday = Util.isDateEqual(date, todayDate);
-        this.isPresent = Util.isDateBefore(date, todayDate, true);
-        this.isEnabled = isPresent;
+        this.isEnabled = Util.isDateBefore(date, todayDate, true);
         this.isLastSundayOfMonth = date[2] == lastSundayOfMonth;
         this.monthString = String.format(Util.getInstance().format_month, date[0], date[1]);
         this.dayString = isToday ? Util.getInstance().today : String.valueOf(date[2]);
@@ -152,7 +146,6 @@ final class CalendarEntity {
         this.itemType = ITEM_TYPE_DIVIDER;
         this.date = null;
         this.isToday = false;
-        this.isPresent = false;
         this.isEnabled = false;
         this.isLastSundayOfMonth = false;
         this.monthString = null;
