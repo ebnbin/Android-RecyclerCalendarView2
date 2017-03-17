@@ -59,7 +59,8 @@ public class RecyclerCalendarView extends FrameLayout {
 
         mCalendarRecyclerView.setPinnedHeaderView(R.layout.item_month);
 
-        setDoubleSelectedMode(false);
+        int[] todayDate = Util.getTodayDate();
+        setDoubleSelectedMode(false, todayDate[0], todayDate[1], todayDate[0], todayDate[1]);
         scrollToSelected();
     }
 
@@ -74,23 +75,25 @@ public class RecyclerCalendarView extends FrameLayout {
     /**
      * 设置是否为双选模式, 并重置选中日期.
      */
-    public void setDoubleSelectedMode() {
-        setDoubleSelectedMode(true);
+    public void setDoubleSelectedMode(int yearFrom, int monthFrom, int yearTo, int monthTo) {
+        setDoubleSelectedMode(true, yearFrom, monthFrom, yearTo, monthTo);
     }
 
     /**
      * 设置单选模式, 并指定选中的日期.
      */
-    public void setDoubleSelectedMode(int[] date) {
-        setDoubleSelectedMode(false);
+    public void setDoubleSelectedMode(int[] date, int yearFrom, int monthFrom, int yearTo, int monthTo) {
+        setDoubleSelectedMode(false, yearFrom, monthFrom, yearTo, monthTo);
 
-        clickPosition(getPosition(date), true, false);
+        setDate(date);
     }
 
-    private void setDoubleSelectedMode(boolean notifyDataSetChanged) {
+    private void setDoubleSelectedMode(boolean notifyDataSetChanged, int yearFrom, int monthFrom, int yearTo,
+            int monthTo) {
         mCalendarAdapter.setCalendarData(null);
 
-        mCalendarAdapter.setCalendarData(CalendarEntity.newCalendarData(mTodayDate));
+        mCalendarAdapter.setCalendarData(CalendarEntity.newCalendarData(mTodayDate, yearFrom, monthFrom, yearTo,
+                monthTo));
 
         resetSelected(notifyDataSetChanged);
     }
@@ -108,6 +111,10 @@ public class RecyclerCalendarView extends FrameLayout {
         if (notifyDataSetChanged) {
             mCalendarAdapter.notifyDataSetChanged();
         }
+    }
+
+    public void setDate(int[] date) {
+        clickPosition(getPosition(date), true, false);
     }
 
     /**

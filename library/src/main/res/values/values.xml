@@ -9,9 +9,6 @@
     <color name="text_today">#f00</color>
     <color name="text_disabled">#ccc</color>
 
-    <integer name="year_from">2011</integer>
-    <integer name="month_from">1</integer>
-
     <string name="format_month">%1$d年%2$d月</string>
     <string name="format_date">%1$04d-%2$02d-%3$02d</string>
 

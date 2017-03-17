@@ -10,19 +10,16 @@ final class CalendarEntity {
     /**
      * 返回一个日历数据.
      */
-    public static List<CalendarEntity> newCalendarData(int[] todayDate) {
+    public static List<CalendarEntity> newCalendarData(int[] todayDate, int yearFrom, int monthFrom, int yearTo,
+            int monthTo) {
         List<CalendarEntity> calendarData = new ArrayList<>();
 
-        int yearTo = todayDate[0];
-        int monthTo = todayDate[1];
-
-        int weekOfFirstDayOfMonth = Util.getWeek(new int[]{Util.getInstance().year_from, Util.getInstance().month_from,
+        int weekOfFirstDayOfMonth = Util.getWeek(new int[]{yearFrom, monthFrom,
                 1});
 
-        for (int year = Util.getInstance().year_from; year <= yearTo; year++) {
+        for (int year = yearFrom; year <= yearTo; year++) {
             for (int month = 1; month <= 12; month++) {
-                if (year == Util.getInstance().year_from && month < Util.getInstance().month_from
-                        || year == yearTo && month > monthTo) {
+                if (year == yearFrom && month < monthFrom || year == yearTo && month > monthTo) {
                     continue;
                 }
 

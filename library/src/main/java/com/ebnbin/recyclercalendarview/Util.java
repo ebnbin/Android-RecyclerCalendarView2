@@ -130,9 +130,6 @@ final class Util {
     public final int text_today;
     public final int text_disabled;
 
-    public final int year_from;
-    public final int month_from;
-
     public final String format_month;
     public final String format_date;
 
@@ -145,9 +142,6 @@ final class Util {
         text_selected = context.getResources().getColor(R.color.text_selected);
         text_today = context.getResources().getColor(R.color.text_today);
         text_disabled = context.getResources().getColor(R.color.text_disabled);
-
-        year_from = context.getResources().getInteger(R.integer.year_from);
-        month_from = context.getResources().getInteger(R.integer.month_from);
 
         format_month = context.getString(R.string.format_month);
         format_date = context.getString(R.string.format_date);
